@@ -1,0 +1,35 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.meixinji.local'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.meixinji.local'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0-local'
+    }
+    buildTypes { release { minifyEnabled false } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    sourceSets { main.assets.srcDirs += ["$buildDir/generated/assets"] }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'androidx.activity:activity:1.9.3'
+}
+
+tasks.register('bundleOfflineWeb', Sync) {
+    from(rootProject.projectDir.parentFile) {
+        include '*.html', '*.js', '*.css', '*.webmanifest'
+        include 'icons/**', 'vendor/**'
+        exclude 'android-app/**'
+    }
+    into("$buildDir/generated/assets/www")
+    doLast {
+        def dst = file("$buildDir/generated/assets/www")
+        if (!file("$dst/index.html").exists() || !file("$dst/app.js").exists()) throw new GradleException("Web app files missing")
+    }
+}
+tasks.named('preBuild') { dependsOn tasks.named('bundleOfflineWeb') }
