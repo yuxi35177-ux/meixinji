@@ -13549,7 +13549,7 @@ function refreshSurfacesAfterBackupZipImport(result) {
       updateChatChrome();
       syncChatInnerVoicePanelFromLog();
       if (chatListScreen?.classList.contains("is-open")) renderChatThreadList();
-      if (chatScreen?.classList.contains("is-open")) renderChatMessages();
+      if (getChatScreenEl()?.classList.contains("is-open")) renderChatMessages();
     } catch (err) {
       console.warn("[backup zip] chat UI refresh failed", err);
     }
@@ -69390,7 +69390,7 @@ function onChatInboxStoreHydrated() {
         renderChatMaskStrip();
         renderChatThreadList();
       }
-      if (chatScreen?.classList.contains("is-open") && readActiveThread()) {
+      if (getChatScreenEl()?.classList.contains("is-open") && readActiveThread()) {
         renderChatMessages();
       }
     };
