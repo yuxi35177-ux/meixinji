@@ -41,6 +41,7 @@
     HERO_NOTE: "rp_hero_note_v1",
     SCENE_PROMPT: "rp_scene_prompt_v1",
     THEME_DARK: "rp_desktop_dark",
+    THEME_MODE: "rp_desktop_theme_mode",
     TOKEN: "rp_auth_token_v1",
     /** Supabase 会话 JSON：access_token / refresh_token */
     SUPABASE_SESSION: "rp_supabase_session_v1",
@@ -150,6 +151,7 @@
     K.HERO_NOTE,
     K.SCENE_PROMPT,
     K.THEME_DARK,
+    K.THEME_MODE,
     K.TOKEN,
     K.SUPABASE_SESSION,
     K.FEATURE_ST_TAVERN_IMPORT,
@@ -320,6 +322,7 @@
   /** 先亮桌面：主题/套色/便签，不含外链图（装扮图单独一批） */
   const KV_BOOT_PRIORITY = new Set([
     K.THEME_DARK,
+    K.THEME_MODE,
     K.HERO_NOTE,
     K.DESKTOP_STYLE_SLOT,
     K.TOKEN,
@@ -1043,6 +1046,7 @@
       key === K.HERO_NOTE ||
       key === K.SCENE_PROMPT ||
       key === K.THEME_DARK ||
+      key === K.THEME_MODE ||
       key === K.GLOBAL_THINKING_CHAIN ||
       key === K.GLOBAL_THINKING_CHAIN_IM ||
       key === K.GLOBAL_THINKING_CHAIN_OFFLINE ||
@@ -1151,6 +1155,7 @@
     K.HERO_NOTE,
     K.SCENE_PROMPT,
     K.THEME_DARK,
+    K.THEME_MODE,
     K.GLOBAL_THINKING_CHAIN,
     K.GLOBAL_THINKING_CHAIN_IM,
     K.GLOBAL_THINKING_CHAIN_OFFLINE,
@@ -1752,7 +1757,7 @@
 
 /** 开屏 + 注入 app.js（原 boot.js，合并进 db.js 以减少请求） */
 (function () {
-  const ASSET_V = "363";
+  const ASSET_V = "364";
   const MAIN_APP = "app.js?v=" + ASSET_V;
   const INLINE_HTML_MODULE = "inline-html.js?v=" + ASSET_V;
   const GROUP_MODULE = "group.js?v=" + ASSET_V;
@@ -2357,8 +2362,8 @@
   function applyBootShellPaint() {
     const D = window.XXJ_DB;
     if (!D || !D.isReady) return false;
-    const raw = D.getKv(D.K.THEME_DARK);
-    const isDark = raw === "1" || raw === 1 || raw === true;
+    const isDark = window.XXJ_THEME.isDark();
+    window.XXJ_THEME.paint(isDark);
     document.body.classList.toggle("dark", isDark);
     const now = new Date();
     const timeText =

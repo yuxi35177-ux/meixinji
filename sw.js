@@ -1,4 +1,4 @@
-const CACHE_NAME = "xxj-pwa-v237";
+const CACHE_NAME = "xxj-pwa-v238-personal";
 const KEEPALIVE_PERIODIC_TAG = "xxj-keepalive";
 const SCHEDULE_IDB = "xxj_sw_schedule";
 const SCHEDULE_STORE = "due";
@@ -6,6 +6,8 @@ const GITHUB_BACKUP_SCHEDULE_ID = "github_backup_auto";
 
 const PRECACHE_URLS = [
   "./index.html",
+  "./theme.js?v=1",
+  "./navigation.js?v=1",
   "./oauth-bootstrap.js",
   "./style.css",
   "./db.js?v=314",

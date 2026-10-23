@@ -5451,7 +5451,7 @@ function renderPolaroids() {
 function refreshSettingsThemeState() {
   const node = document.getElementById("settings-theme-state");
   if (!node) return;
-  node.textContent = document.body.classList.contains("dark") ? "已开启" : "已关闭";
+  node.textContent = { system: "跟随系统", light: "日间", dark: "夜间" }[window.XXJ_THEME.getMode()];
 }
 
 function isCloudAuthEnabled() {
@@ -13145,6 +13145,7 @@ function getBackupZipModuleDefs() {
         K.HERO_NOTE,
         K.SCENE_PROMPT,
         K.THEME_DARK,
+        K.THEME_MODE,
         K.FEATURE_ST_TAVERN_IMPORT,
         K.DESKTOP_STYLE_SLOT,
         K.GLOBAL_UI_TYPO,
@@ -13498,7 +13499,8 @@ function refreshDesktopDecorFromKvStore() {
   const D = window.XXJ_DB;
   if (!D) return;
   persistPlotToCheckupDecorMigrationIfNeeded();
-  const dark = D.getKv(D.K.THEME_DARK) === "1";
+  const dark = window.XXJ_THEME.isDark();
+  window.XXJ_THEME.paint(dark);
   document.body.classList.toggle("dark", dark);
   if (themeToggle) themeToggle.textContent = dark ? "Day" : "Night";
   refreshSettingsThemeState();
@@ -54651,7 +54653,9 @@ function closeStickerScreen() {
   stickerScreen?.setAttribute("aria-hidden", "true");
 }
 
-function setTheme(isDark) {
+function setTheme(isDark, persistMode = true) {
+  if (persistMode) window.XXJ_DB?.setKv(window.XXJ_DB.K.THEME_MODE, isDark ? "dark" : "light");
+  window.XXJ_THEME.paint(isDark);
   document.body.classList.toggle("dark", isDark);
   themeToggle.textContent = isDark ? "Day" : "Night";
   window.XXJ_DB?.setKv(window.XXJ_DB.K.THEME_DARK, isDark ? "1" : "0");
@@ -69483,7 +69487,7 @@ async function runBootDataLoad() {
 
 function runDesktopBootPaint() {
   const D = window.XXJ_DB;
-  const defaultDark = D?.getKv(D.K.THEME_DARK) === "1";
+  const defaultDark = window.XXJ_THEME.isDark();
   document.body.classList.toggle("dark", defaultDark);
   if (themeToggle) themeToggle.textContent = defaultDark ? "Day" : "Night";
   formatTime();
@@ -70553,6 +70557,7 @@ function getWardrobeLookExportKeyList() {
     K.GLOBAL_UI_TYPO_PRESETS,
     K.DESKTOP_STYLE_SLOT,
     K.THEME_DARK,
+    K.THEME_MODE,
     K.PHOTOS,
     K.HERO_NOTE,
     K.SCENE_PROMPT,
@@ -72091,3 +72096,15 @@ body{font-family:system-ui,-apple-system,"Noto Sans SC",sans-serif;margin:0;padd
   const pending = window.__XXJ_CORE_FOR_EXT;
   if (pending && typeof pending === "object") init(pending);
 })();
+
+
+// Keep system appearance live while the PWA is open or resumes from the background.
+window.XXJ_THEME.onChange = () => {
+  setTheme(window.XXJ_THEME.isDark(), false);
+  const select = document.getElementById("settings-theme-mode");
+  if (select) select.value = window.XXJ_THEME.getMode();
+};
+document.getElementById("settings-theme-mode")?.addEventListener("change", (event) => {
+  window.XXJ_THEME.setMode(event.target.value);
+});
+window.XXJ_THEME.onChange();

@@ -2,8 +2,6 @@
 node_modules/
 
 # 登录 / OAuth（私有，不公开）
-auth.js
-oauth-bootstrap.js
 
 # 环境与密钥
 .env
