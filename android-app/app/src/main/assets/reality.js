@@ -48,7 +48,7 @@ window.fetch=function(input,init){
  try{
    if(enabled && init?.body && typeof init.body==='string'){
      const url=String(typeof input==='string'?input:input?.url||'');
-     if(/\\/chat\\/completions(?:\\?|$)/.test(url)){
+     if(url.includes('/chat/completions')){
        const body=JSON.parse(init.body);
        if(Array.isArray(body.messages) && body.messages.some(x=>x.role==='system')){
          body.messages=[{role:'system',content:context()},...body.messages];
