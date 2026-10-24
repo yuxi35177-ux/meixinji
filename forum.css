@@ -2352,3 +2352,12 @@
 #forum-notice-filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}#forum-notice-filters .chip{font-size:.68rem;padding:5px 9px}#forum-screen .forum-wx-notif-block{padding:12px}#forum-screen .forum-wx-notif-av{width:28px;height:28px;min-width:28px;font-size:.75rem}#forum-screen .forum-wx-notif-top strong{font-size:.76rem}#forum-screen .forum-wx-notif-text{font-size:.73rem;white-space:normal;overflow-wrap:anywhere}#forum-screen .forum-wx-notif-row{cursor:pointer;padding:9px 0;gap:8px}#forum-screen .forum-wx-notif-row.is-unread{border-left:3px solid #6b927d;padding-left:8px}
 #forum-sector-wb-banner[hidden]{display:none!important}
 #forum-screen .forum-feed-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+
+/* A post menu is a compact anchored popup, never a settings card. */
+dialog.forum-post-menu{position:fixed;inset:auto;margin:0;width:142px;max-width:calc(100vw - 16px);padding:4px;border:1px solid #8884;border-radius:10px;background:var(--bg-card,#fff);color:var(--text-primary,#242424);box-shadow:0 6px 22px #0002;box-sizing:border-box}
+dialog.forum-post-menu::backdrop{background:transparent}
+dialog.forum-post-menu>button{display:block;width:100%;height:36px;margin:0;padding:0 12px;border:0;border-radius:6px;background:transparent;color:inherit;text-align:left;font:inherit;font-size:.8rem}
+dialog.forum-post-menu>button:first-child{color:#b44b4b}dialog.forum-post-menu>button:disabled{opacity:.4}dialog.forum-post-menu>button:hover{background:#8881}
+.forum-my-identity{display:flex;justify-content:space-between;gap:12px;width:calc(100% - 24px);margin:6px 12px 2px;padding:9px 11px;border:1px solid #8883;border-radius:10px;background:transparent;color:inherit;font-size:.74rem;text-align:left}.forum-my-identity>span:last-child{white-space:nowrap;opacity:.65}
+.forum-generated-item{border:1px solid #8883;border-radius:9px;margin:8px 0;font-size:.78rem}.forum-generated-item>summary{cursor:pointer;padding:11px;overflow-wrap:anywhere}.forum-generated-item[open]>summary{border-bottom:1px solid #8882}.forum-generated-item>.forum-cert-rule{margin:6px;border:0}
+body.dark dialog.forum-post-menu{background:#25282b;color:#e9e9e9;border-color:#7b838966}
