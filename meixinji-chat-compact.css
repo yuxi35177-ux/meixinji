@@ -1,0 +1,33 @@
+/* 没心机本地版 · 2026-10-24 聊天紧凑样式 */
+.phone > .statusbar { display:none !important; }
+.phone > .topbar { grid-row:1; padding-top:max(12px,env(safe-area-inset-top,0px)); }
+.phone > .layout-shell { grid-row:2; }
+#chat-screen .chat-identity-wrap { display:none !important; }
+#chat-screen .settings-topbar-meta { min-width:0; gap:3px; }
+#chat-screen .xxj-mini-identity { display:flex; justify-content:center; align-items:center; gap:4px; max-width:100%; cursor:pointer; border:0; padding:0; background:transparent; color:inherit; }
+#chat-screen .xxj-mini-identity img { width:23px;height:23px;object-fit:cover;border-radius:50%;border:1px solid var(--line);background:var(--bg-card); }
+#chat-screen .xxj-mini-identity .xxj-avatar-placeholder { display:grid;place-items:center;width:23px;height:23px;border-radius:50%;border:1px solid var(--line);font-size:10px; }
+#chat-screen .xxj-mini-identity-name { max-width:100%; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px; }
+#chat-screen .xxj-compact-identity-popup { position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:90; width:min(290px,86vw);padding:9px;border:1px solid var(--line);border-radius:14px;background:var(--bg-card);box-shadow:var(--shadow-card); }
+#chat-screen .xxj-compact-identity-popup[hidden] {display:none!important}
+#chat-screen .xxj-compact-identity-popup .chat-header-duo {display:flex;justify-content:center;gap:12px}
+#chat-screen .xxj-compact-identity-popup .chat-header-face {width:38px;height:38px}
+#chat-screen .chat-msg-inner > .chat-msg-avatar {display:grid !important;width:30px;height:30px;min-width:30px;align-self:flex-start; }
+#chat-screen .chat-msg-inner > .chat-msg-avatar img {width:100%;height:100%;object-fit:cover;border-radius:50%}
+#chat-screen .chat-msg--assistant .chat-msg-inner {flex-direction:row;align-items:flex-start;gap:7px;}
+#chat-screen .chat-msg--user .chat-msg-inner {flex-direction:row-reverse;align-items:flex-start;gap:7px;}
+#chat-screen:not(.chat-screen--theme-glass) .chat-msg-avatar-col {display:flex !important}
+#chat-screen .chat-msg-bubble-stack {max-width:calc(100% - 41px)}
+#chat-screen .chat-msg--assistant .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice),
+#chat-screen .chat-msg--user .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice) {background:#fff!important;border:1px solid #e6e6e6!important;border-left:1px solid #e6e6e6!important;border-right:1px solid #e6e6e6!important;color:#252525!important;box-shadow:0 1px 3px rgba(0,0,0,.03)!important;border-radius:16px!important;padding:9px 12px!important;}
+body.dark #chat-screen .chat-msg--assistant .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice),
+body.dark #chat-screen .chat-msg--user .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice) {background:#292a2c!important;color:#f3f3f3!important;border-color:#494949!important;}
+#chat-screen #chat-composer {padding:3px 9px max(5px,env(safe-area-inset-bottom,0px))!important}
+#chat-screen #chat-composer .chat-slab-spine {display:none!important}
+#chat-screen #chat-composer .chat-composer-cap {padding:0 2px!important;margin-bottom:2px!important}
+#chat-screen #chat-composer .chat-slab-mat {padding:4px!important;border-radius:17px!important}
+#chat-screen #chat-composer .chat-slab-tape {display:none!important}
+#chat-screen #chat-composer .chat-slab-panel.chat-composer-panel {padding:5px 7px!important;gap:5px!important;border-radius:14px!important;min-height:0!important}
+#chat-screen #chat-composer .chat-input-ruled {min-height:35px!important}
+#chat-screen #chat-composer textarea.chat-input {min-height:35px!important;max-height:95px!important;padding:6px 8px!important;font-size:13px!important;line-height:1.4!important}
+#chat-screen #chat-composer .chat-more-btn,#chat-screen #chat-composer .chat-send-fab {width:37px!important;height:37px!important;min-width:37px!important;border-radius:12px!important}
