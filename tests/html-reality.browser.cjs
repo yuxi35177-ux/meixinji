@@ -16,7 +16,7 @@ const root=path.resolve(__dirname,'..');
  await page.evaluate(()=>{openMyScreen()});await page.locator('#my-open-reality').click();await page.locator('#reality-screen').waitFor({state:'visible'});
  await page.locator('#reality-enabled').check();await page.getByRole('button',{name:'测试日期与时间',exact:true}).click();assert.match(await page.locator('#reality-test-time').textContent(),/20\d\d/);
  await page.getByRole('button',{name:'测试电话状态',exact:true}).click();assert.match(await page.locator('#reality-test-phone').textContent(),/本项未开启/);
- await page.evaluate(()=>XXJ_Navigation.goBack());assert.equal(await page.locator('#reality-screen').isVisible(),false);
+ await page.waitForTimeout(420);await page.evaluate(()=>XXJ_Navigation.goBack());assert.equal(await page.locator('#reality-screen').isVisible(),false);
  await page.evaluate(()=>{openSettings()});
  await page.locator('#settings-theme-mode').selectOption('dark');assert.equal(await page.evaluate(()=>document.body.classList.contains('dark')),true);
  await page.locator('#settings-theme-mode').selectOption('light');assert.equal(await page.evaluate(()=>document.body.classList.contains('dark')),false);
@@ -75,6 +75,7 @@ const root=path.resolve(__dirname,'..');
  });
  assert.equal(transport.body.message,'本机接口正常');assert.equal(transport.cancelled,true);assert(transport.sent.includes('cancel'));console.log('Native transport streaming and cancellation: passed');
  assert.deepEqual(errors,[],'no application JavaScript errors');
+ const parsing=await page.evaluate(()=>{const original=DOMParser.prototype.parseFromString;let count=0;DOMParser.prototype.parseFromString=function(...args){count++;return original.apply(this,args)};try{for(let i=0;i<100;i++)XXJ_Cards.renderable('<div>性能缓存验证 unique-9981</div>');}finally{DOMParser.prototype.parseFromString=original;}return count});assert.equal(parsing,1,'repeated rendering reuses sanitization results');
  console.log('ALL BROWSER CHECKS PASSED');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exit(1)});

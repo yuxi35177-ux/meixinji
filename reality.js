@@ -84,6 +84,10 @@
   function setResult(key,text,ok){const el=document.getElementById('reality-test-'+key);if(el){el.textContent=new Date().toLocaleTimeString('zh-CN')+' · '+text;el.dataset.ok=String(ok);}}
   async function test(key,active=true){
     if(!config.enabled||!config[key]){setResult(key,'本项未开启，请先打开总开关和对应开关',false);return;}
+    if(active && ['screenshot','overlay'].includes(key) && !read(key).ok){
+      const opened = permissions[key]?.();
+      setResult(key,opened===false?'系统未能打开，请用下方“应用信息”手动授权':'已请求打开系统权限页，开启权限后返回再测试',false);return;
+    }
     if(key==='location')call('refreshLocation');
     if(key==='sleep')call('refreshHealth');
     const r=read(key);
@@ -122,7 +126,14 @@
       if(permissions[key]){const button=document.createElement('button');button.type='button';button.className='chip ghost chip-xs';button.textContent='权限 / 设置';button.setAttribute('aria-label',label+'权限设置');button.onclick=()=>{if(!bridge()){window.showToast?.('请在 APK 中授权');return;}permissions[key]()};item.appendChild(button);}
       if(key==='overlay'){const b=document.createElement('button');b.type='button';b.className='chip ghost chip-xs';b.textContent='开启截屏悬浮球';b.onclick=()=>{if(config.enabled&&config.screenshot&&config.overlay){const target=window.XXJ_getRealityTarget?.();if(!target){window.showToast?.('请先打开一次要接收截屏的角色聊天');return;}shotTarget=target;call('setScreenshotShareTargets',JSON.stringify({targets:[target],defaultId:target.id}));call('prepareScreenshotBall');}else window.showToast?.('请先开启感知、截屏和悬浮窗');};item.appendChild(b);const stop=document.createElement('button');stop.type='button';stop.className='chip ghost chip-xs';stop.textContent='关闭悬浮球';stop.onclick=()=>call('stopScreenshotBall');item.appendChild(stop);}
       opts.appendChild(item);
-      const t=document.createElement('div');t.className='reality-test-item';const b=document.createElement('button');b.type='button';b.className='chip ghost chip-xs';b.textContent='测试';b.setAttribute('aria-label','测试'+label);b.onclick=()=>test(key);const strong=document.createElement('strong');strong.textContent=label;const result=document.createElement('output');result.id='reality-test-'+key;result.textContent='尚未测试';t.append(strong,b,result);tests.appendChild(t);
+      const t=document.createElement('div');t.className='reality-test-item';const b=document.createElement('button');b.type='button';b.className='chip ghost chip-xs';b.textContent='测试';b.setAttribute('aria-label','测试'+label);b.onclick=()=>test(key);const strong=document.createElement('strong');strong.textContent=label;const result=document.createElement('output');result.id='reality-test-'+key;result.textContent='尚未测试';t.append(strong,b,result);
+      if(['screenshot','overlay'].includes(key)){
+        const actions=document.createElement('div');actions.className='reality-test-actions';b.remove();actions.appendChild(b);
+        const permission=document.createElement('button');permission.type='button';permission.className='chip ghost chip-xs';permission.textContent='打开权限';permission.setAttribute('aria-label','打开'+label+'权限');permission.onclick=()=>permissions[key]?.();actions.appendChild(permission);t.insertBefore(actions,result);
+        const help=document.createElement('p');help.className='reality-permission-help';help.textContent=key==='screenshot'?'在系统无障碍中开启“没心机·本地版”。若提示受限设置，先去应用信息右上角允许受限制的设置，再返回授权。':'在系统页面找到“没心机·本地版”，允许显示在其他应用上层。';t.appendChild(help);
+        const info=document.createElement('button');info.type='button';info.className='chip ghost chip-xs';info.textContent='应用信息';info.onclick=()=>call('openPermissionAppInfo');actions.appendChild(info);
+      }
+      tests.appendChild(t);
     }
     const master=pane.querySelector('#reality-enabled');master.checked=!!config.enabled;master.onchange=()=>{config.enabled=master.checked;save();if(!config.enabled){call('clearRealtime');call('stopScreenshotBall');lastShot=null;foreground=null;lastReturn=null;}else refreshLocation();};
     pane.querySelector('#reality-native-status').textContent=bridge()?'本地 APK 已接通；未授权或无硬件的项目会在测试中说明。':'当前为网页预览；手机感知需在本地 APK 中使用。';

@@ -81,13 +81,18 @@
     }
     return doc;
   }
+  const renderCache=new Map();let cacheChars=0;
+  function hasContent(doc){return !!(doc.body.textContent.trim() || doc.body.querySelector('img,svg,input,details,canvas'));}
   function renderable(raw) {
-    const doc=clean(raw);
-    return !!(doc.body.textContent.trim() || doc.body.querySelector('img,svg,input,details,canvas'));
+    const key=String(raw||'');if(renderCache.has(key))return renderCache.get(key);
+    const result=hasContent(clean(key));renderCache.set(key,result);cacheChars+=key.length;
+    while(renderCache.size>64||cacheChars>1000000){const oldest=renderCache.keys().next().value;cacheChars-=oldest.length;renderCache.delete(oldest);}
+    return result;
   }
   const mounted = new Set();
   function mount(el,raw) {
-    const doc=clean(raw); if(!renderable(raw)) return false;
+    const doc=clean(raw); if(!hasContent(doc)) return false;
+    for(const old of mounted)if(!old.iframe.isConnected){old.dispose?.();mounted.delete(old);}
     const iframe=document.createElement('iframe');
     iframe.className='xxj-html-frame'; iframe.title='HTML 聊天卡片';
     iframe.setAttribute('sandbox','allow-same-origin');
@@ -98,11 +103,14 @@
     const base=`:root{font-size:${font}px;color-scheme:light}*{box-sizing:border-box}html,body{margin:0;min-width:0;width:100%;height:auto;overflow-wrap:anywhere;font-family:system-ui,sans-serif}body{padding:2px;color:#252525;background:#fafaf7;line-height:1.6}img,video,svg,canvas{max-width:100%!important;height:auto}table{max-width:100%;table-layout:fixed;width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere}body>*{max-width:100%!important;min-width:0!important}input,button,textarea,select{font:inherit}details{max-width:100%}`;
     iframe.srcdoc='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="'+csp+'"><style>'+base+'</style>'+[...doc.head.querySelectorAll('style')].map(s=>s.outerHTML).join('')+'</head><body>'+doc.body.innerHTML+'</body></html>';
     el.replaceChildren(iframe); el.classList.add('xxj-html-host');
-    let observer,mutation;
-    const record={iframe,resize:()=>{}};
+    let observer,mutation,pendingFrame=0;
+    const record={iframe,resize:()=>{},dispose:()=>{observer?.disconnect();mutation?.disconnect();cancelAnimationFrame(pendingFrame);}};
     iframe.addEventListener('load',()=>{
       const d=iframe.contentDocument;if(!d)return;
+      function schedule(){if(!pendingFrame)pendingFrame=requestAnimationFrame(resize);}
       function resize(){
+        pendingFrame=0;
+        if(document.hidden||!iframe.getBoundingClientRect().width)return;
         mutation?.disconnect();
         if(!iframe.isConnected){observer?.disconnect();mutation?.disconnect();mounted.delete(record);return;}
         d.documentElement.style.fontSize=(Number.parseFloat(getComputedStyle(document.documentElement).fontSize)||16)+'px';
@@ -117,10 +125,10 @@
         if(Math.abs(parseFloat(iframe.style.height)-next)>2) iframe.style.height=next+'px';
         mutation?.observe(d.body,{attributes:true,childList:true,subtree:true});
       }
-      record.resize=resize; mounted.add(record);resize();
-      observer=new ResizeObserver(()=>requestAnimationFrame(resize));observer.observe(d.body);
-      mutation=new MutationObserver(()=>requestAnimationFrame(resize));mutation.observe(d.body,{attributes:true,childList:true,subtree:true});
-      d.addEventListener('toggle',()=>requestAnimationFrame(resize),true);
+      record.resize=schedule; mounted.add(record);resize();
+      observer=new ResizeObserver(schedule);observer.observe(d.body);
+      mutation=new MutationObserver(schedule);mutation.observe(d.body,{attributes:true,childList:true,subtree:true});
+      d.addEventListener('toggle',schedule,true);
       d.querySelectorAll('img').forEach(img=>img.addEventListener('load',resize));
       d.addEventListener('touchstart',event=>{
         if(!event.touches.length || event.target.closest('input,button,textarea,select,label,a,[role="slider"]'))return;
@@ -132,6 +140,7 @@
   }
   function refresh(){for(const r of mounted){if(r.iframe.isConnected)r.resize();else mounted.delete(r);}}
   window.addEventListener('resize',refresh);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
   document.addEventListener('xxj-font-size-changed',refresh);
   window.XXJ_Cards={extract,mount,renderable,refresh};
 })();

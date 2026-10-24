@@ -562,6 +562,9 @@
     };
 
     try {
+      if (window.XXJ_MCP?.applicable(payload) && !opts?.mcpInternal) {
+        return await window.XXJ_MCP.complete(payload, {request: doFetch, signal: opts?.signal});
+      }
       return await doFetch(payload);
     } catch (e) {
       // 某些 OpenAI 兼容中转/本地模型不支持 response_format（JSON mode）。
@@ -575,6 +578,7 @@
       ) {
         const retry = { ...payload };
         delete retry.response_format;
+        if (window.XXJ_MCP?.applicable(retry) && !opts?.mcpInternal) return window.XXJ_MCP.complete(retry, {request:doFetch, signal:opts?.signal});
         return await doFetch(retry);
       }
       throw e;
@@ -623,6 +627,10 @@
     delete payload.stream_options;
     payload.stream = true;
 
+    if (window.XXJ_MCP?.applicable(payload)) {
+      const data = await chatCompletions({...payload, stream:false}, {...opts, mcpInternal:false});
+      return completionJsonToStreamResult(data);
+    }
     const fetchOpts = {
       method: "POST",
       headers: {

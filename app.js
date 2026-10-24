@@ -1722,9 +1722,10 @@ function applyGlobalUiTypography() {
   }
 
   const pieces = [];
-  if (t.rootSizePx != null) {
-    pieces.push(`html { font-size: ${t.rootSizePx}px !important; }`);
-  }
+  const globalSize = t.rootSizePx != null ? t.rootSizePx : 14;
+  document.documentElement.style.setProperty("--xxj-font-scale", String(globalSize / 16));
+  pieces.push(`html { font-size: ${globalSize}px !important; }`);
+  document.dispatchEvent(new Event("xxj-font-size-changed"));
 
   const fam = t.faceFamily.trim();
   const srcFile = (t.faceSrcDataUrl || t.faceSrcUrl || "").trim();
@@ -2637,7 +2638,7 @@ function syncWardrobeTypoForm() {
   if (hint) {
     hint.textContent = t.faceSrcDataUrl ? "已缓存本机上传的字体文件" : "未上传";
   }
-  const sz = t.rootSizePx != null ? t.rootSizePx : 16;
+  const sz = t.rootSizePx != null ? t.rootSizePx : 14;
   if (range && range instanceof HTMLInputElement) {
     range.value = String(sz);
   }
@@ -44294,6 +44295,8 @@ function buildChatSystemPrompt(opts) {
     const live = buildCharLockLiveChatSystemAppend(charLockLiveSession);
     if (live) sys = `${sys}\n\n${live}`;
   }
+  const mcpContext = window.XXJ_MCP?.prompt?.();
+  if (mcpContext) sys += "\n\n" + mcpContext;
   const realityContext = window.XXJ_REALITY?.getContext?.();
   if (realityContext) sys += "\n\n" + realityContext;
   return sys;
@@ -72114,7 +72117,7 @@ window.XXJ_THEME.onChange();
 /* Same typography setting as wardrobe; the shortcut preserves all font choices. */
 (function () {
  const range=document.getElementById('settings-font-size'), out=document.getElementById('settings-font-value');
- function sync(){if(!range)return;const t=readGlobalUiTypoFromKv();range.value=String(t.rootSizePx||16);out.textContent=range.value+' px';}
+ function sync(){if(!range)return;const t=readGlobalUiTypoFromKv();range.value=String(t.rootSizePx||14);out.textContent=range.value+' px';}
  range?.addEventListener('input',()=>{const t=readGlobalUiTypoFromKv();persistGlobalUiTypo({...t,rootSizePx:Number(range.value)});out.textContent=range.value+' px';syncWardrobeTypoForm();document.dispatchEvent(new Event('xxj-font-size-changed'));});
  document.getElementById('my-open-settings')?.addEventListener('click',sync);sync();
 })();

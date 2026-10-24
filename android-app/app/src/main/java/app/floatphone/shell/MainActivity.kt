@@ -210,6 +210,7 @@ class MainActivity : AppCompatActivity() {
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
+            textZoom = 100
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             databaseEnabled = true
             mediaPlaybackRequiresUserGesture = false
@@ -849,30 +850,16 @@ class MainActivity : AppCompatActivity() {
         fun canDrawOverlay(): Boolean = CallOverlayService.canDraw(this@MainActivity)
 
         @JavascriptInterface
-        fun requestOverlayPermission() {
-            if (Build.VERSION.SDK_INT < 23) return
-            runCatching {
-                startActivity(
-                    Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:$packageName"),
-                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                )
-            }
-        }
+        fun requestOverlayPermission(): Boolean = launchPermissionSettings("overlay")
 
         @JavascriptInterface
         fun isAccessibilityConnected(): Boolean = CallControlService.connected
 
         @JavascriptInterface
-        fun openAccessibilitySettings() {
-            runCatching {
-                startActivity(
-                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                )
-            }
-        }
+        fun openAccessibilitySettings(): Boolean = launchPermissionSettings("accessibility")
+
+        @JavascriptInterface
+        fun openPermissionAppInfo(): Boolean = launchPermissionSettings("app")
 
         @JavascriptInterface
         fun getScreenshotCapabilities(): String = ScreenshotBridge.capabilitiesJson()
@@ -1130,6 +1117,30 @@ class MainActivity : AppCompatActivity() {
         "wav" -> "audio/wav"
         "mp4" -> "video/mp4"
         else -> "application/octet-stream"
+    }
+
+    private fun launchPermissionSettings(which: String): Boolean {
+        val done = java.util.concurrent.CountDownLatch(1)
+        val opened = java.util.concurrent.atomic.AtomicBoolean(false)
+        runOnUiThread {
+            val appInfo = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
+            val routes = when (which) {
+                "overlay" -> listOf(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")), Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION), appInfo)
+                "accessibility" -> listOf(
+                    Intent("android.settings.ACCESSIBILITY_DETAILS_SETTINGS").putExtra(Intent.EXTRA_COMPONENT_NAME, android.content.ComponentName(this, CallControlService::class.java).flattenToString()),
+                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS), appInfo)
+                else -> listOf(appInfo)
+            }
+            try {
+                for (route in routes) {
+                    try { startActivity(route.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); opened.set(true); break }
+                    catch (_: Exception) { }
+                }
+                if (!opened.get()) Toast.makeText(this, "请从系统设置 → 应用 → 没心机·本地版手动授权", Toast.LENGTH_LONG).show()
+            } finally { done.countDown() }
+        }
+        done.await(2, java.util.concurrent.TimeUnit.SECONDS)
+        return opened.get()
     }
 
     private inner class PhoneWidgetBridge {

@@ -26,7 +26,7 @@
             catch { /* Ignore malformed messages without logging credentials. */ }
         };
     }
-    async function localApiFetch(url, init = {}) {
+    async function localApiFetch(url, init = {}, mcp = false) {
         if (typeof window === "undefined")
             return fetch(url, init);
         const host = window;
@@ -93,7 +93,7 @@
                     settled = true;
                     resolve(new Response(stream, {
                         status,
-                        headers: { "Content-Type": reply.contentType || "application/json" },
+                        headers: { "Content-Type": reply.contentType || "application/json", ...(reply.sessionId ? {"Mcp-Session-Id":reply.sessionId} : {}) },
                     }));
                     if (noBody) {
                         cleanup();
@@ -118,7 +118,7 @@
                 send("start", {
                     url, method: init.method || "GET",
                     headers: Object.fromEntries(new Headers(init.headers).entries()),
-                    body: init.body ?? null,
+                    body: init.body ?? null, mcp,
                 });
             }
             catch (error) {
@@ -126,6 +126,8 @@
             }
         });
     }
+    window.XXJ_nativeMcpFetch = (url, init) => localApiFetch(url, init, true);
+    window.XXJ_configureMcpTransport = urls => window.FloatLocalApi?.postMessage(JSON.stringify({id:'mcp-config',type:'mcp-configure',urls}));
     const originalFetch = window.fetch.bind(window);
     window.fetch = function (input, init = {}) {
         let url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, location.href);
