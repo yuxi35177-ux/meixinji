@@ -2649,8 +2649,8 @@ function syncWardrobeTypoForm() {
   if (val) {
     val.textContent =
       t.rootSizePx != null
-        ? `当前根字号 ${t.rootSizePx}px（聊天消息气泡、输入栏等 rem 会联动）`
-        : "未启用：跟随浏览器默认（通常 16px）";
+        ? `全局字号 ${t.rootSizePx}px（所有内置应用与 HTML 卡片联动）`
+        : "使用默认全局字号 14px";
   }
 }
 
