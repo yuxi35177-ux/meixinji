@@ -16,6 +16,14 @@
       if (rect.right <= 0 || rect.bottom <= 0 || rect.left >= innerWidth || rect.top >= innerHeight) return false;
       return button.contains(document.elementFromPoint(x, y));
     });
+    // Forum overlays are siblings; DOM order cannot identify their active depth.
+    const forum = document.getElementById('forum-screen');
+    if (forum && forum.getAttribute('aria-hidden') !== 'true') {
+      for (const id of ['forum-share-sheet-close','forum-refresh-sheet-close','forum-api-sheet-close','forum-sector-sheet-close','forum-compose-close','forum-dm-back','forum-detail-back']) {
+        const paneButton = candidates.find(button => button.id === id);
+        if (paneButton) return paneButton;
+      }
+    }
     // Visible controls on a nested pane occur after their parent in this UI.
     return candidates[candidates.length - 1] || null;
   }

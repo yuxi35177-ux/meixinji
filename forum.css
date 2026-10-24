@@ -2325,3 +2325,6 @@
 #forum-image-settings-open{margin-top:8px;width:100%;padding:13px;border:1px solid #8883;border-radius:14px;background:transparent;color:inherit;font-size:.82rem;text-align:left}.forum-post-image-button{margin:8px 12px 12px;font-size:.72rem}.forum-image-dialog select{display:block;width:100%;padding:9px;margin:12px 0;background:transparent;color:inherit;border:1px solid #8884;border-radius:8px;font:inherit}#forum-cert-generation-status{font-size:.75rem;line-height:1.6}#forum-cert-generate,#forum-cert-refine{font-size:.76rem;margin:4px 6px 4px 0}
 
 #forum-sector-extras select{display:block;width:100%;box-sizing:border-box;padding:10px;margin-top:6px;border:1px solid #8884;border-radius:10px;background:var(--bg-card,#fff);color:inherit;font:inherit}.forum-extra-field[hidden]{display:none!important}.forum-role-badge{font-weight:650}
+
+.forum-board-rules{margin:4px 16px 12px;border:1px solid #8883;border-radius:12px;padding:10px;font-size:.72rem;line-height:1.6}.forum-board-rules p{margin:6px 0}.forum-generation-note{font-size:.74rem;line-height:1.6}#forum-role-groups input[type=checkbox]{display:inline;width:auto;margin-right:6px}.forum-cert{white-space:normal;overflow-wrap:anywhere}.forum-feed-author-text strong{flex-wrap:wrap}#forum-role-generate{font-size:.76rem}
+#forum-screen .forum-detail{z-index:30}

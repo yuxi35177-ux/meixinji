@@ -1764,7 +1764,7 @@
   const CHECKUP_MODULE = "checkup.js?v=351";
   const CHECKUP_REVERSE_MODULE = "checkup-reverse.js?v=348";
   const ROAM_MODULE = "roam.js?v=49";
-  const FORUM_MODULE = "forum.js?v=47";
+  const FORUM_MODULE = "forum.js?v=48";
   const RELATION_MODULE = "relation.js?v=23";
   const RELATION_INTERACT_MODULE = "relation-interact.js?v=19";
   const RELATION_AI_MODULE = "relation-ai.js?v=2";

@@ -27,7 +27,7 @@ function navEnv() {
   const listeners={}, windowEvents={};let clock=1000,level=2,pushes=0;
   const buttons=[0,1].map(i=>({id:`pane${i}-close`,disabled:false,closest:()=>null,getBoundingClientRect:()=>({left:10,top:10,right:70,bottom:40,width:60,height:30}),contains:x=>x===buttons[i],click(){level--;}}));
   const target={scrollWidth:100,clientWidth:100,parentElement:null,closest:()=>null};
-  const document={body:{},querySelectorAll:()=>level?[buttons[level-1]]:[],elementFromPoint:()=>level?buttons[level-1]:null,addEventListener:(n,f)=>listeners[n]=f};
+  const document={body:{},getElementById:()=>null,querySelectorAll:()=>level?[buttons[level-1]]:[],elementFromPoint:()=>level?buttons[level-1]:null,addEventListener:(n,f)=>listeners[n]=f};
   const history={state:null,pushState(state){this.state=state; pushes++;}};
   const env={document,window:{getSelection:()=>null,addEventListener:(n,f)=>windowEvents[n]=f},history,location:{href:'https://example.test/'},navigator:{},performance:{now:()=>clock},innerWidth:393,innerHeight:852,matchMedia:()=>({matches:true}),getComputedStyle:()=>({overflowX:'visible'})};
   load('navigation.js',env);

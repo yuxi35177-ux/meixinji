@@ -7,7 +7,7 @@ const GITHUB_BACKUP_SCHEDULE_ID = "github_backup_auto";
 const PRECACHE_URLS = [
   "./index.html",
   "./theme.js?v=1",
-  "./navigation.js?v=1",
+  "./navigation.js?v=2",
   "./oauth-bootstrap.js",
   "./style.css",
   "./db.js?v=314",
