@@ -9,7 +9,8 @@
   <script src="ui-refinements.js?v=1" defer></script>
   <script src="mcp.js?v=2" defer></script>
   <script src="friend-cards.js?v=1" defer></script>
-  <script src="chat-home.js?v=1" defer></script>
+  <script src="chat-home.js?v=2" defer></script>
+  <script src="persona-refine.js?v=1" defer></script>
   <script src="oauth-bootstrap.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#3a5c89">
@@ -127,7 +128,7 @@
   <link rel="stylesheet" href="style.css?v=99">
   <link rel="stylesheet" href="reality.css?v=1">
   <link rel="stylesheet" href="ui-refinements.css?v=1">
-  <link rel="stylesheet" href="friend-cards.css?v=1">
+  <link rel="stylesheet" href="friend-cards.css?v=2">
   <link rel="stylesheet" href="chat-home.css?v=1">
   <link rel="stylesheet" href="mcp.css?v=2">
   <link rel="stylesheet" href="roam.css?v=31">
@@ -3102,9 +3103,9 @@
                   <h2 class="settings-masthead-title">角色档案</h2>
                 </div>
               </section>
-              <p class="char-roster-lead">拍立得卡片，点头像或名字进入编辑。切换前会保存当前表单。</p>
+              <p class="char-roster-lead">左右滑动切换角色，点头像或名字进入编辑。切换前会保存当前表单。</p>
               <div class="char-roster-divider" aria-hidden="true"></div>
-              <ul id="char-roster-grid" class="char-roster-grid" role="list"></ul>
+              <ul id="char-roster-grid" class="char-roster-grid char-roster-grid--mask-hscroll" role="list"></ul>
               <div class="char-roster-footer">
                 <button type="button" class="chip ghost chip-xs char-roster-new-wide" id="char-roster-new">
                   <i class="ph ph-plus" aria-hidden="true"></i>
