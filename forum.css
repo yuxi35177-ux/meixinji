@@ -2328,3 +2328,27 @@
 
 .forum-board-rules{margin:4px 16px 12px;border:1px solid #8883;border-radius:12px;padding:10px;font-size:.72rem;line-height:1.6}.forum-board-rules p{margin:6px 0}.forum-generation-note{font-size:.74rem;line-height:1.6}#forum-role-groups input[type=checkbox]{display:inline;width:auto;margin-right:6px}.forum-cert{white-space:normal;overflow-wrap:anywhere}.forum-feed-author-text strong{flex-wrap:wrap}#forum-role-generate{font-size:.76rem}
 #forum-screen .forum-detail{z-index:30}
+/* Forum badges are standalone pixel SVGs, independent of icon fonts. */
+#forum-screen .forum-wx-wechat-topbar-inner{height:auto;min-height:64px;padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:10px}
+#forum-screen .forum-sector-row{padding-top:16px;padding-bottom:10px}
+#forum-screen .forum-feed-author{min-width:0;flex:1;align-items:flex-start}
+#forum-screen .forum-feed-author-text{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+#forum-screen .forum-feed-author-text strong{display:block;line-height:1.35}
+.forum-author-badges{display:flex;gap:4px;flex-wrap:wrap;max-width:100%}.forum-author-badges:empty{display:none}
+#forum-screen .forum-cert{margin:0;display:inline-flex;gap:4px;padding:3px 6px;border:1px solid #87948a55;border-radius:5px;font-size:.64rem;line-height:1.3;background:var(--bg-card,#fff);max-width:100%;box-sizing:border-box}
+.forum-pixel-badge{display:inline-block;flex-shrink:0;vertical-align:middle;width:18px;height:18px;image-rendering:pixelated}
+.forum-cert-preview{display:flex;align-items:center;gap:8px;font-size:.8rem;padding:8px;border:1px solid #8884;border-radius:6px;margin-bottom:8px}
+#forum-screen .forum-post-more{align-self:flex-start;flex-shrink:0;min-width:36px;min-height:36px;border:1px solid #8883;border-radius:10px;background:transparent;color:inherit;font-size:1.25rem;line-height:1}
+.forum-image-dialog>button{display:block;width:100%;margin-top:10px}.forum-image-dialog>small{display:block;margin:5px 0;font-size:.72rem}.forum-image-dialog button:disabled{opacity:.45}
+#forum-board-rules:not([open]){display:none}#forum-board-rules[open]{margin-top:8px}#forum-board-rules p{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#forum-feed-modes{gap:6px;overflow-x:auto;flex-wrap:nowrap;padding:8px 12px}#forum-feed-modes .chip{flex-shrink:0;padding:6px 10px;font-size:.7rem}
+[data-theme=dark] #forum-screen .forum-cert{background:#25282b;border-color:#71807977;color:#d4e2db}
+#forum-screen .forum-cert{color:var(--badge-color,#547e69);border-color:var(--badge-color,#547e69)}
+#forum-extra-certs input[type=checkbox]{display:inline-block;width:auto;margin-right:6px}#forum-extra-certs input[type=color]{width:48px;height:32px;padding:2px}
+#forum-screen .forum-wx-chat-av,#forum-screen .forum-wx-chat-av-wrap{width:36px;height:36px;min-width:36px;flex:0 0 36px;font-size:1rem}
+#forum-screen .forum-wx-chat-row{min-height:60px;padding:10px 40px 10px 12px;gap:10px}#forum-screen .forum-wx-chat-top strong{font-size:.82rem}#forum-screen .forum-wx-chat-preview{font-size:.73rem}#forum-screen .forum-wx-chat-top time{font-size:.64rem}
+#forum-screen .forum-recent-delete{position:absolute;right:8px;top:16px;z-index:3;width:28px;height:28px;border:1px solid #8883;border-radius:8px;background:var(--bg-card,#fff);color:inherit;font-size:1rem}
+#forum-screen .forum-wx-chat-header-av{width:30px;height:30px;min-width:30px;font-size:.9rem}#forum-screen .forum-dm-bubble-av,#forum-screen .forum-dm-bubble-spacer{width:28px;height:28px;min-width:28px;flex:0 0 28px;font-size:.8rem}#forum-screen .forum-dm-bubble{padding:9px 12px;font-size:.82rem;line-height:1.55}#forum-screen .forum-dm-group{gap:8px}
+#forum-notice-filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}#forum-notice-filters .chip{font-size:.68rem;padding:5px 9px}#forum-screen .forum-wx-notif-block{padding:12px}#forum-screen .forum-wx-notif-av{width:28px;height:28px;min-width:28px;font-size:.75rem}#forum-screen .forum-wx-notif-top strong{font-size:.76rem}#forum-screen .forum-wx-notif-text{font-size:.73rem;white-space:normal;overflow-wrap:anywhere}#forum-screen .forum-wx-notif-row{cursor:pointer;padding:9px 0;gap:8px}#forum-screen .forum-wx-notif-row.is-unread{border-left:3px solid #6b927d;padding-left:8px}
+#forum-sector-wb-banner[hidden]{display:none!important}
+#forum-screen .forum-feed-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
