@@ -23,7 +23,7 @@
     function sync(){
       queued=false;
       for(const [source,target] of [[faceChar,imgA],[faceMe,imgB]]){const src=source?.getAttribute('src'); if(src && !source.classList.contains('is-hidden')){if(target.getAttribute('src')!==src)target.setAttribute('src',src);target.style.display='';}else{target.removeAttribute('src');target.style.display='none';}}
-      name.textContent=root.querySelector('#chat-meta-eyebrow')?.textContent||'聊天';
+      const label=root.querySelector('#chat-meta-eyebrow')?.textContent||'聊天';if(name.textContent!==label)name.textContent=label;
     }
     const observer=new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(sync)});
     observer.observe(root.querySelector('.chat-screen-topbar'),{subtree:true,attributes:true,childList:true,characterData:true});
