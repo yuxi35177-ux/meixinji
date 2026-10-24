@@ -112,7 +112,7 @@
                     controller?.close();
                 }
             });
-            timer = setTimeout(() => fail(new Error("手机本地 API 响应超时，请检查本机服务")), 35_000);
+            timer = setTimeout(() => fail(new Error("手机本地 API 响应超时，请检查本机服务")), /\/images\/generations(?:\?|$)/.test(url) ? 240_000 : 35_000);
             signal?.addEventListener("abort", abort, { once: true });
             try {
                 send("start", {

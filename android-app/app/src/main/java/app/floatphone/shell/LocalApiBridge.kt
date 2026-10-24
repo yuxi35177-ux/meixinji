@@ -103,7 +103,8 @@ class LocalApiBridge(private val webView: WebView, siteUrl: String) {
             post(reply, JSONObject().put("id", id).put("type", "error"))
             return
         }
-        val call = client.newCall(request)
+        val requestClient = if (request.url.encodedPath.endsWith("/images/generations")) client.newBuilder().readTimeout(240, TimeUnit.SECONDS).build() else client
+        val call = requestClient.newCall(request)
         val transfer = Transfer(call, reply)
         transfers[id] = transfer
         fun deliver(type: String, fill: (JSONObject) -> Unit = {}) {
