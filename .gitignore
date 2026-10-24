@@ -12,3 +12,11 @@ node_modules/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Android build outputs and private signing material
+android-app/.gradle/
+android-app/**/build/
+android-app/app/src/main/assets/
+android-app/local.properties
+*.jks
+*.keystore

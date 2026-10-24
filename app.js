@@ -22526,7 +22526,7 @@ function isThreadTheaterEnabled(thread) {
 function isThreadInlineHtmlAutoEnabled(thread) {
   if (!thread || typeof thread !== "object") return false;
   if (isChatThreadGroupForUi(thread)) return false;
-  return thread.inlineHtmlAutoEnabled === true;
+  return thread.inlineHtmlAutoEnabled !== false;
 }
 
 /** 主控是否已拉黑本密谈角色（卷宗开关）。 */
@@ -39539,7 +39539,7 @@ function renderChatMessages() {
     const rowGlassCtx = isChatScreenThemeGlassActive() ? glassChatRowRebuildCtx(charP, userM, m) : null;
     wrap.className = `chat-msg chat-msg--${role}`;
     wrap.dataset.chatMsgIdx = String(idx);
-    if (role === "assistant" && typeof window.XXJ_InlineHtml?.materializeInlineHtmlOnMessage === "function") {
+    if ((role === "assistant" || role === "user") && typeof window.XXJ_InlineHtml?.materializeInlineHtmlOnMessage === "function") {
       window.XXJ_InlineHtml.materializeInlineHtmlOnMessage(m);
     }
     const isVoice =
@@ -39585,7 +39585,7 @@ function renderChatMessages() {
           assistantParsedCharCap = String(p.charImageCaption || "").trim();
           const replyTrim = String(p.reply || "").trim();
           const capTrim = String(assistantParsedCharCap || "").trim();
-          if (replyTrim || capTrim) {
+          if (replyTrim || capTrim || p.inlineHtmlCards?.length) {
             rawFull = String(p.reply || "");
             if (!String(m.translation || "").trim() && String(p.lineTranslationsJoined || "").trim()) {
               assistantParsedTransJoined = String(p.lineTranslationsJoined || "").trim();
@@ -40293,7 +40293,7 @@ function renderChatMessages() {
     if (deferOfflineAsstImgBelow) {
       appendOfflineAssistantImageCardsBelowText(stack, m, idx, assistantParsedCharCap);
     }
-    if (shellSurface !== "offline" && !shouldDeferInlineHtmlCards) {
+    if (!shouldDeferInlineHtmlCards) {
       window.XXJ_InlineHtml?.appendCardsToStack?.(stack, m, chatBubbleSegShift);
     }
     /* 仅心声/空 lines：parts 循环会跳过空白段，stack 无子节点；经典无头像不明显，玻璃会露出空头像行 */
@@ -44294,6 +44294,8 @@ function buildChatSystemPrompt(opts) {
     const live = buildCharLockLiveChatSystemAppend(charLockLiveSession);
     if (live) sys = `${sys}\n\n${live}`;
   }
+  const realityContext = window.XXJ_REALITY?.getContext?.();
+  if (realityContext) sys += "\n\n" + realityContext;
   return sys;
 }
 
@@ -65223,7 +65225,7 @@ document.getElementById("chat-detail-inline-html-auto-toggle")?.addEventListener
   const on = !isThreadInlineHtmlAutoEnabled(readActiveThread());
   patchActiveThread((t) => {
     if (on) t.inlineHtmlAutoEnabled = true;
-    else delete t.inlineHtmlAutoEnabled;
+    else t.inlineHtmlAutoEnabled = false;
   });
   syncChatDetailInlineHtmlAutoUi();
   showToast(on ? "已开启中插 HTML" : "已关闭中插 HTML");
@@ -72108,3 +72110,28 @@ document.getElementById("settings-theme-mode")?.addEventListener("change", (even
   window.XXJ_THEME.setMode(event.target.value);
 });
 window.XXJ_THEME.onChange();
+
+/* Same typography setting as wardrobe; the shortcut preserves all font choices. */
+(function () {
+ const range=document.getElementById('settings-font-size'), out=document.getElementById('settings-font-value');
+ function sync(){if(!range)return;const t=readGlobalUiTypoFromKv();range.value=String(t.rootSizePx||16);out.textContent=range.value+' px';}
+ range?.addEventListener('input',()=>{const t=readGlobalUiTypoFromKv();persistGlobalUiTypo({...t,rootSizePx:Number(range.value)});out.textContent=range.value+' px';syncWardrobeTypoForm();document.dispatchEvent(new Event('xxj-font-size-changed'));});
+ document.getElementById('my-open-settings')?.addEventListener('click',sync);sync();
+})();
+
+window.XXJ_getRealityTarget = function () {
+ const ref = readChatActiveThreadRef(); if (!ref.maskId || !ref.threadId) return null;
+ const th = readActiveThread();
+ return {id:ref.maskId+'::'+ref.threadId, name:getThreadCharDisplayAlias(th)||'当前聊天'};
+};
+window.XXJ_attachRealityScreenshot = function (dataUrl, targetId) {
+  reconcileActiveThreadRef();
+  if (!readChatActiveThreadRef().threadId || !/^data:image\/png;base64,/.test(String(dataUrl))) return false;
+  if (targetId && window.XXJ_getRealityTarget()?.id !== targetId) return false;
+  const log = readChatLog();
+  const row = {role:'user',at:Date.now(),content:'',image:{url:dataUrl}};
+  tagOutgoingChatDmSurfaceIfOffline(row);
+  log.push(row);saveChatLog(log);openChatScreen();
+  scheduleRenderChatMessagesAfterUserSend();scheduleChatContextTokenLabelUpdate();
+  showToast('截屏已放入当前聊天，尚未请求 AI 回复');return true;
+};

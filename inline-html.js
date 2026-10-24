@@ -248,6 +248,7 @@
       (opts?.lastCardHint ? { hints: [String(opts.lastCardHint)] } : { hints: [] });
     const lines = [
       `[插卡 · 即兴道具 · 自由 html]`,
+      `本轮回复必须在 inlineHtmlCards 数组提供至少一张与当前对话相关的完整 HTML 卡片，聊天正文仍放 lines。使用内联 CSS 或 style，宽度 100%、max-width:100%，简体中文正文可读，不用外部脚本、外部字体、JavaScript 或 API。可用 details/summary、checkbox/label 实现纯 CSS 交互。不要把 HTML 塞进 lines。`,
       `插卡 = 聊天里**当场手做**的小道具：帮角色**做一件事**；**不是**摘要、**不是**摘原话、**不是**固定模板换字。`,
       ...buildInlineHtmlInteractPolicyLines(),
       ...buildInlineHtmlPropFidelityLines(),
@@ -264,7 +265,7 @@
   }
 
   function stripInlineHtmlBrackets(html) {
-    return String(html ?? "").replace(/[\[\]]/g, "");
+    return String(html ?? "");
   }
 
   /** @param {string} raw 模型误写入 lines/content 的 HTML 片段 */
@@ -429,6 +430,12 @@
     for (let i = 0; i < parts.length; i++) {
       const t = String(parts[i] ?? "").trim();
       if (!t) continue;
+      const extracted = window.XXJ_Cards?.extract(t);
+      if (extracted?.cards.length) {
+        for (const card of extracted.cards) pushHoistedInlineHtmlCard(cards, card.html, card.title);
+        kept.push(...extracted.parts);
+        continue;
+      }
       const split = splitLeadingHtmlFromText(t);
       if (split) {
         pushHoistedInlineHtmlCard(cards, split.html);
@@ -474,16 +481,31 @@
     return { parts: kept, cards: normalizeCardsOnMessage(cards) };
   }
 
+  function messageSourceParts(m) {
+    const content = String(m.content ?? "").trim();
+    let parsed = null;
+    try {
+      const raw = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+      const obj = JSON.parse(raw);
+      if (obj && typeof obj === "object" && (Array.isArray(obj.lines) || Array.isArray(obj.inlineHtmlCards))) parsed = obj;
+    } catch (_) {}
+    return {
+      content,
+      fromJson: !!parsed,
+      parts: parsed ? (Array.isArray(parsed.lines) ? parsed.lines.filter(x => typeof x === "string") : []) : content ? (content.includes("|||") ? content.split("|||") : [content]) : [],
+      seed: normalizeCardsOnMessage([...(Array.isArray(m.inlineHtmlCards) ? m.inlineHtmlCards : m.inlineHtmlCards ? [m.inlineHtmlCards] : []), ...(Array.isArray(parsed?.inlineHtmlCards) ? parsed.inlineHtmlCards : [])])
+    };
+  }
+
   /**
    * 把 content 里夹带的 HTML 抽到 inlineHtmlCards，并从 content 剥离（修复混段 / 未入库）。
    * @param {Record<string, unknown>} m
    */
   function materializeInlineHtmlOnMessage(m) {
-    if (!m || typeof m !== "object" || String(m.role || "") !== "assistant") return;
-    const content = String(m.content ?? "").trim();
-    const segs = content ? (content.includes("|||") ? content.split("|||") : [content]) : [];
-    const seed = normalizeCardsOnMessage(m.inlineHtmlCards ?? null);
-    const hoisted = hoistInlineHtmlCardsFromLineParts(segs, seed);
+    if (!m || typeof m !== "object" || !["assistant", "user"].includes(String(m.role || ""))) return;
+    const source = messageSourceParts(m);
+    const { content, seed } = source;
+    const hoisted = hoistInlineHtmlCardsFromLineParts(source.parts, seed);
     const renderable = hoisted.cards.filter((c) => inlineHtmlCardIsRenderable(c));
     if (renderable.length) {
       m.inlineHtmlCards = renderable;
@@ -496,7 +518,10 @@
       .map((p) => String(p ?? "").trim())
       .filter(Boolean)
       .join("|||");
-    if (nextContent !== content) m.content = nextContent;
+    if (nextContent !== content && !source.fromJson) {
+      if (!Object.prototype.hasOwnProperty.call(m, "originalHtmlContent")) m.originalHtmlContent = m.content;
+      m.content = nextContent;
+    }
   }
 
   /** @param {string} html */
@@ -587,6 +612,7 @@
             cardOrHtml && typeof cardOrHtml === "object" ? cardOrHtml.html : ""
           ).trim();
     if (!raw) return false;
+    if (window.XXJ_Cards) return window.XXJ_Cards.renderable(raw);
     const s = stripInlineHtmlBrackets(raw);
     if (!s) return false;
     const san =
@@ -605,6 +631,7 @@
   /** @param {HTMLElement|null} el @param {string} raw @returns {boolean} */
   function fillInlineHtmlProseEl(el, raw) {
     if (!el) return false;
+    if (window.XXJ_Cards) return window.XXJ_Cards.mount(el, String(raw ?? ""));
     initInlineHtmlChatDelegation();
     const s = stripInlineHtmlBrackets(String(raw ?? ""));
     el.classList.toggle("rich-prose--html", Boolean(s));
@@ -971,7 +998,7 @@
         id: String(rec.id || makeCardId()).trim() || makeCardId(),
         presetId: "custom",
         title: String(rec.title || "小道具").trim().slice(0, 80),
-        html: html.slice(0, 48_000),
+        html: html.slice(0, 200_000),
         ...(insertAfterSeg !== undefined ? { insertAfterSeg } : {})
       });
     }
@@ -982,11 +1009,8 @@
   function peekCardsFromMessage(m) {
     if (!m || typeof m !== "object") return [];
     const rec = /** @type {Record<string, unknown>} */ (m);
-    const seed = normalizeCardsOnMessage(rec.inlineHtmlCards ?? null);
-    const content = String(rec.content ?? "").trim();
-    if (!content && seed.length) return seed;
-    const segs = content ? (content.includes("|||") ? content.split("|||") : [content]) : [];
-    return hoistInlineHtmlCardsFromLineParts(segs, seed).cards;
+    const source = messageSourceParts(rec);
+    return hoistInlineHtmlCardsFromLineParts(source.parts, source.seed).cards;
   }
 
   /** @param {unknown} m */
@@ -1106,7 +1130,7 @@
 
     return [
       `[中插 HTML · 自动 · ${name} 发给 ${userCall}]`,
-      `本密谈已开启中插 HTML：**除极短寒暄外，本轮尽量带 inlineHtmlCards**（1 张，与 lines 同轮）；**优先可点击互动**（刮开/翻面/点转/二选一/details），勿只做静态展示。做不出**可见**插卡则 **omit 整键**，禁止空壳占位。`,
+      `本密谈已开启中插 HTML：**本轮带 inlineHtmlCards**（1 张，与 lines 同轮）；**优先可点击互动**（刮开/翻面/点转/二选一/details），勿只做静态展示。做不出**可见**插卡则 **omit 整键**，禁止空壳占位。`,
       ...buildInlineHtmlAutoPrompt({ recentMeta }),
       `贴合本轮场面（不限情绪），但勿复述对话；**道具外形须贴合角色本轮在发的东西**。`,
       ...(timeAware

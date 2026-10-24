@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?><resources>
+<string name="app_name">没心机·本地版</string>
+<string name="accessibility_service_summary">前台应用感知与手动截屏</string>
+<string name="accessibility_service_description">经你授权后读取前台应用名称，并在你手动发起时截屏；画面先在本机预览，不会自动发送。</string>
+<string name="phone_widget_desc">没心机角色桌面卡片</string></resources>

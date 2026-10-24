@@ -27,6 +27,9 @@
     return true;
   }
 
+  window.XXJ_Navigation = { goBack, backControl };
+  window.floatShellBack = function () { goBack(); return true; };
+
   document.addEventListener("touchstart", (event) => {
     start = null;
     if (event.touches.length !== 1 || event.target.closest(ignore)) return;

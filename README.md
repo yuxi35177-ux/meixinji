@@ -78,3 +78,10 @@ cd meixinji
 - 修改版源代码：https://github.com/yuxi35177-ux/meixinji
 
 检查：`node --test tests/mobile.test.cjs`。不需要构建步骤。
+
+
+## 本地 APK 增强版
+
+Android 工程见 [android-app/README.md](android-app/README.md)。保持本地版应用名、包名和图标；感知入口位于「我的」中表情包正下方，包含各项权限和底部逐项测试。旧 HTML 聊天自动显示卡片，原消息保留；默认启用新密谈自动 HTML 插卡。字号、日夜间与滑动返回沿用原设置。
+
+回归检查：`node --test tests/mobile.test.cjs`；安装 Playwright 后可运行 `node tests/html-reality.browser.cjs` 验证 HTML、感知入口、设置及隐私开关。浏览器二进制可由 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定。

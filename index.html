@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <script src="theme.js?v=1"></script>
+  <script src="html-cards.js?v=1" defer></script>
+  <script src="reality.js?v=1" defer></script>
+  <script src="native-transport.js?v=1" defer></script>
   <script src="oauth-bootstrap.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#3a5c89">
@@ -91,7 +94,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <script>
     (function () {
-      if (!("serviceWorker" in navigator)) return;
+      if (location.hostname === "appassets.androidplatform.net" || !("serviceWorker" in navigator)) return;
       var ok =
         location.protocol === "https:" ||
         location.hostname === "localhost" ||
@@ -118,6 +121,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@300;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=99">
+  <link rel="stylesheet" href="reality.css?v=1">
   <link rel="stylesheet" href="roam.css?v=31">
   <link rel="stylesheet" href="forum.css?v=43">
   <link rel="stylesheet" href="relation.css?v=18">
@@ -611,8 +615,9 @@
                     <option value="dark">夜间</option>
                   </select>
                 </label>
+                <label class="xxj-font-row" for="settings-font-size">字体大小 <output id="settings-font-value">16 px</output><input id="settings-font-size" aria-label="字体大小" type="range" min="12" max="22" step="1" value="16"></label>
                 <p class="settings-ai-key-note">左右滑动可返回上一层。请从屏幕内侧起滑，避开手机系统的边缘返回区域。</p>
-                <a class="settings-row" href="https://github.com/yuxi35177-ux/meixinji" target="_blank" rel="noopener">本修改版源代码 · AGPL-3.0</a>
+                <a class="settings-row" href="https://github.com/yuxi35177-ux/meixinji/tree/feature/local-apk-reality-cards" target="_blank" rel="noopener">本修改版源代码 · AGPL-3.0</a>
               </div>
             </section>
 
@@ -8591,6 +8596,6 @@
 
   <script src="navigation.js?v=1"></script>
   <!-- app.js / ai-api 由 db.js 在 #phone 就绪后注入；图标字体需尽早加载 -->
-  <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="vendor/phosphor/style.css">
 </body>
 </html>
