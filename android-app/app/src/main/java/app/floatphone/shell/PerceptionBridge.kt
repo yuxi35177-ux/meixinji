@@ -129,26 +129,10 @@ class PerceptionBridge(private val context: Context) {
      * type: wifi / cellular / ethernet / vpn / other / none（未知一律 none）。
      * metered=true 表示走流量，网页侧可据此提示「省着点」。
      */
-    fun networkJson(): JSONObject = try {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val caps = cm.getNetworkCapabilities(cm.activeNetwork)
-        val type = when {
-            caps == null -> "none"
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "vpn"
-            else -> "other"
-        }
-        val metered = caps?.let {
-            !it.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-        } ?: true
-        JSONObject()
-            .put("type", type)
-            .put("metered", metered)
-    } catch (e: Throwable) {
-        JSONObject()
-    }
+    private val networkDetails = NetworkDetails(context)
+    fun startNetwork() = networkDetails.start()
+    fun stopNetwork() = networkDetails.stop()
+    fun networkJson(): JSONObject = networkDetails.snapshot()
 
     /**
      * 包名 → 应用显示名。取不到返回空串，调用方退回显示包名。

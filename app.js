@@ -23100,6 +23100,7 @@ function applyTheaterSnapsToAssistantEntry(entry, parsed, thread) {
 /** @param {Record<string, unknown>} entry @param {ReturnType<typeof parseChatAssistantPayload>} parsed */
 function applyInlineHtmlCardsToAssistantEntry(entry, parsed) {
   if (!entry || entry.role !== "assistant" || !parsed?.fromJson) return;
+  window.XXJ_Friends?.apply(entry, parsed);
   const cards = parsed.inlineHtmlCards;
   if (Array.isArray(cards) && cards.length) entry.inlineHtmlCards = cards;
   if (typeof window.XXJ_InlineHtml?.materializeInlineHtmlOnMessage === "function") {
@@ -31973,7 +31974,7 @@ function chatMessageShouldRemoveEntryWhenEmpty(msg, role) {
   const stillInlineHtml =
     typeof window.XXJ_InlineHtml?.messageHasInlineHtmlCards === "function" &&
     window.XXJ_InlineHtml.messageHasInlineHtmlCards(msg);
-  if (stillImgUrl || stillImgDesc || stillSticker || stillInlineHtml) return false;
+  if (stillImgUrl || stillImgDesc || stillSticker || stillInlineHtml || msg.friendCards?.length) return false;
   if (String(msg.narration || "").trim()) return false;
   if (readMessageQuoteRef(msg) && String(msg.content || "").trim()) return false;
   if (String(msg.content || "").trim()) return false;
@@ -34380,6 +34381,7 @@ function syncChatListDockTabIcons(threadsOn) {
 }
 
 function setChatListInboxTab(which) {
+  if(window.XXJ_ChatHome){window.XXJ_ChatHome.select(which);return;}
   const tabThreads = document.getElementById("chat-list-tab-threads");
   const tabMoments = document.getElementById("chat-list-tab-moments");
   const panelThreads = document.getElementById("chat-list-panel-threads");
@@ -38680,6 +38682,7 @@ function finishChatMessagesRenderShell(stickerReusePool, photoReusePool, msgRowR
   if (stickerReusePool) disposeStaleChatStickerReusePool(stickerReusePool);
   if (photoReusePool) disposeStaleChatPhotoReusePool(photoReusePool);
   if (msgRowReusePool) disposeStaleChatMsgRowReusePool(msgRowReusePool);
+  window.XXJ_Friends?.mount();
   updateChatContextTokenLabel();
   applyChatThreadSurfaceBackgrounds();
   if (!chatDeferInnerVoiceSyncNextRender) syncChatInnerVoicePanelFromLog();
@@ -39586,7 +39589,7 @@ function renderChatMessages() {
           assistantParsedCharCap = String(p.charImageCaption || "").trim();
           const replyTrim = String(p.reply || "").trim();
           const capTrim = String(assistantParsedCharCap || "").trim();
-          if (replyTrim || capTrim || p.inlineHtmlCards?.length) {
+          if (replyTrim || capTrim || p.inlineHtmlCards?.length || p.friendCards?.length) {
             rawFull = String(p.reply || "");
             if (!String(m.translation || "").trim() && String(p.lineTranslationsJoined || "").trim()) {
               assistantParsedTransJoined = String(p.lineTranslationsJoined || "").trim();
@@ -44299,6 +44302,7 @@ function buildChatSystemPrompt(opts) {
   if (mcpContext) sys += "\n\n" + mcpContext;
   const realityContext = window.XXJ_REALITY?.getContext?.();
   if (realityContext) sys += "\n\n" + realityContext;
+  sys += window.XXJ_Friends?.prompt()||"";
   return sys;
 }
 
@@ -47573,6 +47577,8 @@ function parseChatAssistantPayload(raw, opts) {
   if (slice) {
     try {
       const o = JSON.parse(slice);
+      const friendCards=window.XXJ_Friends?.normalize(o.friendCards||o.friendCard)||[];
+      const friendExtra=friendCards.length?{friendCards}:{};
       let inlineHtmlCards =
         typeof window.XXJ_InlineHtml?.parseFromAssistantJson === "function"
           ? window.XXJ_InlineHtml.parseFromAssistantJson(o)
@@ -47746,11 +47752,12 @@ function parseChatAssistantPayload(raw, opts) {
           ...relationDmForwardExtra,
           ...forumCommentExtra,
           ...forumShareExtra,
+          ...friendExtra,
           ...(inlineHtmlCards.length ? { inlineHtmlCards } : {}),
           ...pan
         };
       }
-      if (inlineHtmlCards.length) {
+      if (inlineHtmlCards.length || friendCards.length) {
         return {
           reply: "",
           recalls: [],
@@ -47776,6 +47783,7 @@ function parseChatAssistantPayload(raw, opts) {
           ...relationDmForwardExtra,
           ...forumCommentExtra,
           ...forumShareExtra,
+          ...friendExtra,
           ...pan
         };
       }
@@ -47804,6 +47812,7 @@ function parseChatAssistantPayload(raw, opts) {
           ...relationDmForwardExtra,
           ...forumCommentExtra,
           ...forumShareExtra,
+          ...friendExtra,
           ...pan
         };
       }
@@ -47832,6 +47841,7 @@ function parseChatAssistantPayload(raw, opts) {
           ...relationDmForwardExtra,
           ...forumCommentExtra,
           ...forumShareExtra,
+          ...friendExtra,
           ...pan
         };
       }
@@ -67143,7 +67153,7 @@ async function runChatAssistantRoundBody(opts, btn) {
         narStoredLive ||
         charLockAssistantSpecHasEffect(charLockSpecRound) ||
         offlineMeetupWillTrigger ||
-        (Array.isArray(firstParsed?.inlineHtmlCards) && firstParsed.inlineHtmlCards.length > 0) ||
+        (Array.isArray(firstParsed?.friendCards) && firstParsed.friendCards.length > 0) || (Array.isArray(firstParsed?.inlineHtmlCards) && firstParsed.inlineHtmlCards.length > 0) ||
         (charLockLive &&
           (String(charLockLiveRevParsed.final || "").trim() ||
             String(charLockLiveRevParsed.draft || "").trim()))
@@ -68124,7 +68134,7 @@ async function rerollLastAssistantMessage() {
         narStored ||
         charLockAssistantSpecHasEffect(charLockSpecReroll) ||
         offlineMeetupWillTriggerReroll ||
-        (Array.isArray(firstParsed?.inlineHtmlCards) && firstParsed.inlineHtmlCards.length > 0)
+        (Array.isArray(firstParsed?.friendCards) && firstParsed.friendCards.length > 0) || (Array.isArray(firstParsed?.inlineHtmlCards) && firstParsed.inlineHtmlCards.length > 0)
       ) {
         const visMark = entryInsertAt;
         promoteAssistantComposerQuoteToStructuredStorage(entry, next);

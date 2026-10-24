@@ -438,8 +438,12 @@ class MainActivity : AppCompatActivity() {
         webView.evaluateJavascript(js, null)
     }
 
-    override fun onResume() { super.onResume(); realtime.resumeNfc() }
-    override fun onPause() { realtime.pauseNfc(); super.onPause() }
+    private fun syncNetworkObservation() {
+        val p = getSharedPreferences("realtime_features", MODE_PRIVATE)
+        if (p.getBoolean("enabled", false) && p.getBoolean("network", false)) perception.startNetwork() else perception.stopNetwork()
+    }
+    override fun onResume() { super.onResume(); realtime.resumeNfc(); syncNetworkObservation() }
+    override fun onPause() { realtime.pauseNfc(); perception.stopNetwork(); super.onPause() }
 
     override fun onNewIntent(intent: Intent) {
         realtime.consumeIntent(intent)
@@ -551,7 +555,7 @@ class MainActivity : AppCompatActivity() {
         fun getStatusBarHeightPx(): Int = statusBarHeightCssPx
 
         @JavascriptInterface
-        fun configureRealtime(json: String): Boolean = realtime.configure(json)
+        fun configureRealtime(json: String): Boolean { val ok = realtime.configure(json); runOnUiThread { syncNetworkObservation() }; return ok }
         @JavascriptInterface fun getRealtimeSnapshot(): String = realtime.snapshot()
         @JavascriptInterface fun requestRealtimePermission(key: String) { realtime.permission(key) }
         @JavascriptInterface fun clearRealtime() { realtime.clear() }

@@ -34,3 +34,5 @@ body.dark #chat-screen:not(.chat-screen--theme-glass) .chat-msg-bubble:not(.chat
 #chat-screen #chat-composer .chat-composer-fabs{gap:6px}
 #chat-screen #chat-composer .chat-more-btn,#chat-screen #chat-composer .chat-send-fab{width:36px;height:36px;min-width:36px;border-radius:10px;box-shadow:none;transform:none}
 #chat-screen #chat-composer #chat-input{min-height:36px;height:36px;max-height:96px;padding:7px 8px;line-height:1.45;font-size:.84rem}
+/* Focus in a dialog must not scroll the phone shell and expose closed drawers. */
+@media(max-width:520px){.stage{padding:0;overflow:clip;display:flex;align-items:stretch}.phone{width:100%;max-width:100%;overflow:clip!important}}

@@ -48,12 +48,26 @@ class MediaControlListenerService : NotificationListenerService() {
             }
             val rows = activeNotifications.orEmpty().asSequence()
                 .filter { it.packageName != packageName }
-                .toList()
-                .takeLast(10)
+                .sortedByDescending { it.postTime }.take(20)
                 .map { sbn ->
-                    org.json.JSONObject().put("app", sbn.packageName)
-                        .put("title", sbn.notification.extras.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty().take(160))
-                        .put("text", sbn.notification.extras.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString().orEmpty().take(240))
+                    val n = sbn.notification
+                    val e = n.extras
+                    fun field(key: String) = e.getCharSequence(key)?.toString().orEmpty()
+                    val appName = runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(sbn.packageName, 0)).toString() }.getOrDefault(sbn.packageName)
+                    val lines = e.getCharSequenceArray(android.app.Notification.EXTRA_TEXT_LINES)?.map { it.toString() }.orEmpty()
+                    val messages = e.getParcelableArray("android.messages").orEmpty().mapNotNull { it as? android.os.Bundle }.takeLast(10).map { msg ->
+                        val sender = if (android.os.Build.VERSION.SDK_INT >= 28) msg.getParcelable<android.app.Person>("sender_person")?.name?.toString().orEmpty().ifBlank { msg.getCharSequence("sender")?.toString().orEmpty() } else msg.getCharSequence("sender")?.toString().orEmpty()
+                        org.json.JSONObject().put("sender",sender).put("text",msg.getCharSequence("text")?.toString().orEmpty().take(1200)).put("at",msg.getLong("time",0))
+                    }
+                    org.json.JSONObject().put("app",sbn.packageName).put("appName",appName).put("at",sbn.postTime)
+                        .put("title",field(android.app.Notification.EXTRA_TITLE).take(300))
+                        .put("text",field(android.app.Notification.EXTRA_TEXT).take(1200))
+                        .put("bigText",field(android.app.Notification.EXTRA_BIG_TEXT).take(4000))
+                        .put("subText",field(android.app.Notification.EXTRA_SUB_TEXT).take(300))
+                        .put("summary",field(android.app.Notification.EXTRA_SUMMARY_TEXT).take(600))
+                        .put("lines",org.json.JSONArray(lines.takeLast(12).map { it.take(1200) }))
+                        .put("messages",org.json.JSONArray(messages))
+                        .put("ongoing",sbn.isOngoing).put("groupSummary", n.flags and android.app.Notification.FLAG_GROUP_SUMMARY != 0)
                 }.toList()
             RealtimeBridge.notificationSummary = org.json.JSONArray(rows)
         }

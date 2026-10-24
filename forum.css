@@ -2318,3 +2318,7 @@
 #forum-screen .forum-api-profile-wrap {
   margin-bottom: 4px;
 }
+
+.forum-feed-modes{display:flex;gap:8px;padding:8px 16px}.forum-feed-modes .chip{font-size:.74rem;padding:5px 13px}.forum-extra-field{display:block;margin:14px 0;font-size:.8rem}.forum-extra-field input,.forum-extra-field textarea,.forum-cert-rule input,.forum-cert-rule select{display:block;box-sizing:border-box;width:100%;margin-top:6px;padding:10px;border:1px solid #8884;border-radius:10px;background:var(--bg-card,#fff);color:inherit;font:inherit}.forum-extra-contacts{display:flex;flex-wrap:wrap;gap:8px;font-size:.8rem}.forum-extra-contacts label{display:flex;gap:5px;padding:7px;border:1px solid #8883;border-radius:10px}.forum-cert-rule{margin:10px 0;border:1px solid #8884;border-radius:12px;padding:12px;font-size:.76rem}.forum-cert-rule label{display:block;margin:7px 0}.forum-cert{display:inline-flex;align-items:center;gap:3px;font-size:.64rem;color:var(--accent,#547162);margin-left:5px}.forum-feature-toggle{margin-left:auto;font-size:.62rem;flex-shrink:0}#forum-sector-extras h4{font-size:.84rem}#forum-dm-add-friend{white-space:nowrap;font-size:.72rem}
+/* Private conversations must cover the feed's sticky header. */
+#forum-screen .forum-dm{z-index:30}

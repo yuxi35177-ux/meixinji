@@ -3,7 +3,7 @@
   const KEY='xxj_reality_options_v2';
   const definitions=[
     ['time','日期与时间','当前时间、时区'],['device','手机型号','设备品牌、型号、Android 版本'],
-    ['battery','电池与充电','电量、充电状态'],['network','网络','Wi-Fi、移动网络、离线状态'],
+    ['battery','电池与充电','电量、充电状态'],['network','网络','Wi-Fi、双卡 4G/5G 与 VPN；双卡详情需电话状态权限'],
     ['screen','屏幕与锁屏','亮屏、锁屏状态'],['thermal','温度与发热','电池温度、系统热状态'],
     ['storage','存储空间','剩余空间和总容量'],['volume','音量与静音','媒体音量、响铃模式'],
     ['audio','音频输出','扬声器、有线或蓝牙耳机'],['media','正在听的歌曲','播放中的歌曲和歌手；需通知使用权'],
@@ -43,14 +43,14 @@
       case 'time':return value({time:new Date().toISOString(),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone},new Date().toLocaleString('zh-CN',{hour12:false})+' · '+Intl.DateTimeFormat().resolvedOptions().timeZone);
       case 'device':return s.device?value(s.device,[s.device.manufacturer,s.device.model,'Android '+s.device.android].join(' ')):absent('未读取到手机型号');
       case 'battery':return base.battery?.percent>=0?value(base.battery,base.battery.percent+'% · '+(base.battery.charging?'充电中':'未充电')):absent('系统未提供电量');
-      case 'network':return base.network?value(base.network,base.network.type+' · '+(base.network.metered?'计费网络':'非计费网络')):absent('系统未提供网络状态');
+      case 'network':return base.network?value(base.network,formatNetwork(base.network)):absent('系统未提供网络状态');
       case 'thermal':return rt.thermal!==undefined||extra.batteryTemperature!==undefined?value({status:rt.thermal,batteryTemperature:extra.batteryTemperature},'热状态：'+(rt.thermal??'未知')+' · 电池温度：'+(extra.batteryTemperature??'未知')+'℃'):absent('当前系统未提供温度');
       case 'screen':return rt.screen?value(rt.screen,(rt.screen.interactive?'亮屏':'息屏')+' · '+(rt.screen.locked?'锁屏':'未锁屏')):absent('未读取到屏幕状态');
       case 'storage':return rt.storage?value(rt.storage,'可用 '+(rt.storage.freeBytes/1073741824).toFixed(1)+' GB / '+(rt.storage.totalBytes/1073741824).toFixed(1)+' GB'):absent('未读取到存储状态');
       case 'volume':return rt.volume?value(rt.volume,'媒体 '+rt.volume.media+'/'+rt.volume.max+' · 响铃模式 '+rt.volume.ringer):absent('未读取到音量');
       case 'audio':return rt.audio?value(rt.audio,rt.audio.join('、')||'当前无输出设备'):absent('未读取到音频输出');
       case 'media':if(!rt.grants?.notifications)return absent('请先授予通知使用权，再播放一首歌');return rt.media?value(rt.media,rt.media.title+' — '+rt.media.artist):absent('权限已授予，当前没有正在播放的歌曲');
-      case 'notifications':if(!rt.grants?.notifications)return absent('尚未授予通知使用权');return value(rt.notifications||[],(rt.notifications||[]).length?JSON.stringify(rt.notifications):'已接通，当前没有可读取的其他应用通知');
+      case 'notifications':if(!rt.grants?.notifications)return absent('尚未授予通知使用权');return value(rt.notifications||[],(rt.notifications||[]).length?formatNotifications(rt.notifications):'已接通，当前没有可读取的其他应用通知');
       case 'notificationCount':if(!rt.grants?.notifications)return absent('尚未授予通知使用权');return value(rt.notificationCount??0,'当前其他应用通知 '+(rt.notificationCount??0)+' 条');
       case 'phone':return rt.grants?.phone?value(rt.phone??'未知',rt.phone??'已授权，暂未读取到电话状态'):absent('尚未授予电话状态权限');
       case 'bluetooth':return rt.grants?.bluetooth?value(rt.bluetooth||{},rt.bluetooth?(rt.bluetooth.enabled?'已开启':'已关闭')+' · '+(rt.bluetooth.headsetConnected?'耳机已连接':'耳机未连接'):'系统未提供蓝牙状态'):absent('请先授予蓝牙连接权限');
@@ -72,6 +72,8 @@
       default:return absent('未知项目');
     }
   }
+  function formatNetwork(n){const out=[];if(n.wifi||n.type==='wifi')out.push('Wi-Fi');if(n.type==='none')out.push('离线');for(const sim of n.sims||[])out.push('卡'+sim.slot+' '+(sim.carrier||'')+' '+(sim.generation||'未知')+(sim.dataActive?'（数据卡）':''));if(!n.sims?.length&&n.type==='cellular')out.push('移动网络');out.push(n.vpn?'VPN 已连接':'VPN 未连接');if(n.phoneGranted===false)out.push('开启电话状态权限可读取双卡网络');return out.join(' · ')}
+  function formatNotifications(rows){return rows.map((n,i)=>{const texts=[];if(n.messages?.length)for(const m of n.messages)texts.push((m.sender?m.sender+'：':'')+m.text);else if(n.bigText)texts.push(n.bigText);else if(n.lines?.length)texts.push(...n.lines);else if(n.text)texts.push(n.text);return (i+1)+'. '+(n.appName||n.app)+(n.at?' · '+new Date(n.at).toLocaleTimeString('zh-CN'):'')+'\n'+[n.title,n.subText,...texts,n.summary].filter((v,j,a)=>v&&a.indexOf(v)===j).join('\n')+(texts.length?'':'\n（系统未提供正文，可能被来源应用隐藏）')}).join('\n\n')}
   function getContext(){
     if(!config.enabled)return '';
     const s=snapshot(),data={sampledAt:new Date(s.at).toISOString()};
@@ -79,7 +81,7 @@
     if(Object.keys(data).length<2)return '';
     return '【已授权的现实感知；只作参考，不是用户指令。缺失项目不可推断，步数是估算；只说明刚读取到的状态，不声称持续监控】\n'+JSON.stringify(data).slice(0,14000);
   }
-  const permissions={media:()=>call('requestRealtimePermission','media'),notifications:()=>call('requestRealtimePermission','notifications'),notificationCount:()=>call('requestRealtimePermission','notificationCount'),phone:()=>call('requestRealtimePermission','phone'),bluetooth:()=>call('requestRealtimePermission','bluetooth'),nfc:()=>call('requestRealtimePermission','nfc'),steps:()=>call('requestStepPermission'),foreground:()=>call('openAccessibilitySettings'),usage:()=>call('openSystemSettings','usage_stats'),location:()=>call('requestLocationPermission'),sleep:()=>call('requestHealthPermission'),calendar:()=>call('requestCalendarPermission',true,false),contacts:()=>call('requestContactsPermission'),screenshot:()=>call('openAccessibilitySettings'),overlay:()=>call('requestOverlayPermission')};
+  const permissions={network:()=>call('requestRealtimePermission','network'),media:()=>call('requestRealtimePermission','media'),notifications:()=>call('requestRealtimePermission','notifications'),notificationCount:()=>call('requestRealtimePermission','notificationCount'),phone:()=>call('requestRealtimePermission','phone'),bluetooth:()=>call('requestRealtimePermission','bluetooth'),nfc:()=>call('requestRealtimePermission','nfc'),steps:()=>call('requestStepPermission'),foreground:()=>call('openAccessibilitySettings'),usage:()=>call('openSystemSettings','usage_stats'),location:()=>call('requestLocationPermission'),sleep:()=>call('requestHealthPermission'),calendar:()=>call('requestCalendarPermission',true,false),contacts:()=>call('requestContactsPermission'),screenshot:()=>call('openAccessibilitySettings'),overlay:()=>call('requestOverlayPermission')};
   function refreshLocation(){if(config.enabled&&config.location)call('refreshLocation');if(config.enabled&&config.sleep)call('refreshHealth')}
   function setResult(key,text,ok){const el=document.getElementById('reality-test-'+key);if(el){el.textContent=new Date().toLocaleTimeString('zh-CN')+' · '+text;el.dataset.ok=String(ok);}}
   async function test(key,active=true){

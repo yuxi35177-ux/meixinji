@@ -39,7 +39,7 @@ class RealtimeBridge(private val activity: Activity) {
     fun configure(json: String): Boolean = runCatching {
         val obj = JSONObject(json)
         val editor = prefs.edit().putBoolean("enabled", obj.optBoolean("enabled", false))
-        for (key in listOf("screen", "thermal", "storage", "media", "audio", "notifications", "notificationCount", "phone", "volume", "bluetooth", "nfc", "share", "nextAlarm", "vibrate", "contacts")) editor.putBoolean(key, obj.optBoolean(key, false))
+        for (key in listOf("network", "screen", "thermal", "storage", "media", "audio", "notifications", "notificationCount", "phone", "volume", "bluetooth", "nfc", "share", "nextAlarm", "vibrate", "contacts")) editor.putBoolean(key, obj.optBoolean(key, false))
         editor.apply()
         activity.runOnUiThread { pauseNfc(); resumeNfc() }
         MediaControlListenerService.current()?.refreshRealtimeSummaries()
@@ -52,7 +52,7 @@ class RealtimeBridge(private val activity: Activity) {
         activity.runOnUiThread {
             when (key) {
                 "bluetooth" -> if (Build.VERSION.SDK_INT >= 31) ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 408)
-                "phone" -> ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.READ_PHONE_STATE), 409)
+                "network", "phone" -> ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.READ_PHONE_STATE), 409)
                 "notifications", "notificationCount", "media" -> activity.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 "nfc" -> activity.startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
                 "background" -> activity.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:${activity.packageName}")))

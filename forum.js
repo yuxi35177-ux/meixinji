@@ -141,6 +141,8 @@
   }
 
   function resolveUserName() {
+    const alias=maskForum?.sectors?.find(s=>s.id===maskForum.activeSectorId)?.identityName;
+    if(alias)return alias;
     if (typeof readUserMask === "function") {
       const m = readUserMask(typeof getActiveMaskIdForInbox === "function" ? getActiveMaskIdForInbox() : "");
       const n = String(m?.displayName || m?.name || "").trim();
@@ -159,6 +161,24 @@
     return String(raw?.activeId || "").trim();
   }
 
+  function postHeat(p){return (p.likes?.length||0)*3+(p.comments?.length||0)*2;}
+  function renderFeedModes(){let nav=document.getElementById('forum-feed-modes');if(!nav){nav=document.createElement('nav');nav.id='forum-feed-modes';nav.className='forum-feed-modes';nav.setAttribute('aria-label','板块帖子排序');sectorChipsEl?.after(nav);}nav.replaceChildren();for(const [key,label] of [['recent','最近'],['hot','热门'],['featured','精华']]){const b=document.createElement('button');b.type='button';b.className='chip '+((getActiveSector()?.feedMode||'recent')===key?'solid':'ghost');b.textContent=label;b.onclick=()=>{getActiveSector().feedMode=key;saveMaskForum();renderFeedModes();renderFeed()};nav.append(b);}}
+  function certificationHtml(name,sectorId){const sec=getSectorById(sectorId);if(!sec)return '';const rows=posts.filter(p=>(p.sectorId||'main')===sec.id);const own=rows.filter(p=>p.authorName===name);const count=own.length,likes=own.reduce((n,p)=>n+(p.likes?.length||0),0),comments=rows.reduce((n,p)=>n+(p.comments||[]).filter(c=>c.authorName===name).length,0);return normalizeCertifications(sec.certificationRules).filter(r=>{const names=r.names.split(/[,，\n]/).map(v=>v.trim()).filter(Boolean);return (names.length?names.includes(name):r.posts+r.likes+r.comments>0)&&count>=r.posts&&likes>=r.likes&&comments>=r.comments;}).map(r=>`<span class="forum-cert" title="${escapeHtml(r.note||r.label)}"><i class="ph ph-${r.icon}" aria-hidden="true"></i>${escapeHtml(r.label)}</span>`).join('');}
+  function renderSectorExtras(sec){let area=document.getElementById('forum-sector-extras');if(!area){area=document.createElement('div');area.id='forum-sector-extras';sectorCustomPromptEl?.before(area);}area.replaceChildren();
+    function field(id,title,value,kind='textarea'){const l=document.createElement('label');l.className='forum-extra-field';l.textContent=title;const input=document.createElement(kind==='textarea'?'textarea':'input');input.id='forum-extra-'+id;if(kind!=='textarea')input.type=kind;else input.rows=3;input.value=String(value??'');l.append(input);area.append(l);return input;}
+    field('worldView','本板块世界观',sec?.worldView);field('rules','本板块规则',sec?.rules);field('identityName','我的板块昵称 / 身份名称',sec?.identityName,'text');field('identityRole','我的身份设定（职业、立场、公开信息）',sec?.identityRole);field('postMinChars','每篇正文最少字数',sec?.postMinChars||80,'number').min='10';field('postMaxChars','每篇正文最多字数',sec?.postMaxChars||500,'number').max='6000';
+    const title=document.createElement('h4');title.textContent='关联联系人（参与刷帖、评论和世界观）';area.append(title);const list=document.createElement('div');list.id='forum-extra-contacts';list.className='forum-extra-contacts';for(const c of listForumChars()){const l=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.value=c.id;box.checked=(sec?.castCharIds||[]).includes(c.id);l.append(box,document.createTextNode(charDisplayName(c)));list.append(l);}if(!list.children.length)list.textContent='先在名册添加角色，再选择关联。';area.append(list);
+    const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='认证图标与条件（按本板块数据判定）';details.append(summary);const certs=document.createElement('div');certs.id='forum-extra-certs';for(const r of normalizeCertifications(sec?.certificationRules)){const row=document.createElement('fieldset');row.className='forum-cert-rule';row.innerHTML='<legend>认证规则</legend>';for(const [key,label,kind] of [['label','认证名称','text'],['posts','发帖数 ≥','number'],['likes','获赞数 ≥','number'],['comments','评论数 ≥','number'],['names','指定昵称（逗号分隔；留空按数量条件）','text'],['note','条件说明','text']]){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.type=kind;input.dataset.certField=key;input.value=r[key];if(kind==='number')input.min='0';l.append(input);row.append(l);}const select=document.createElement('select');select.dataset.certField='icon';for(const [v,t] of [['seal-check','✓ 认证'],['fire','♨ 人气'],['chat-circle-dots','☏ 活跃'],['shield-check','♜ 版主'],['medal','♙ 勋章'],['star','★ 星标'],['crown','♛ 皇冠'],['graduation-cap','▱ 学者']]){const o=document.createElement('option');o.value=v;o.textContent=t;select.append(o);}select.value=r.icon;row.append(select);certs.append(row);}details.append(certs);area.append(details);
+  }
+  function saveSectorExtras(sec){for(const key of ['worldView','rules','identityName','identityRole'])sec[key]=String(document.getElementById('forum-extra-'+key)?.value||'').trim();const min=Math.min(4000,Math.max(10,Number(document.getElementById('forum-extra-postMinChars')?.value)||80));const max=Math.min(6000,Math.max(min,Number(document.getElementById('forum-extra-postMaxChars')?.value)||500));sec.postMinChars=min;sec.postMaxChars=max;sec.castCharIds=[...document.querySelectorAll('#forum-extra-contacts input:checked')].map(e=>e.value);sec.certificationRules=normalizeCertifications([...document.querySelectorAll('#forum-extra-certs fieldset')].map(row=>Object.fromEntries([...row.querySelectorAll('[data-cert-field]')].map(e=>[e.dataset.certField,e.value]))));}
+  function syncForumAddFriend(conv){let b=document.getElementById('forum-dm-add-friend');if(!b){b=document.createElement('button');b.id='forum-dm-add-friend';b.type='button';b.className='chip ghost chip-xs';document.querySelector('#forum-dm .forum-wx-chat-header-spacer')?.replaceWith(b);}if(!b)return;const existing=findForumCharByDisplayName(conv.peerName);b.textContent=existing?'打开好友':'加为好友';b.onclick=async()=>{const mid=resolveMaskId();const old=findForumCharByDisplayName(conv.peerName);if(old){closeForumScreen();return window.XXJ_Friends.open(old.id,mid);}const sec=getSectorById(conv.sectorId);const recent=posts.filter(p=>p.authorName===conv.peerName).slice(0,3).map(p=>p.content).join('\n');const c=await window.XXJ_Friends?.review({name:conv.peerName,summary:'来自论坛「'+sec.name+'」。'+(recent?'最近发言：'+recent:''),identity:sec.worldView,source:'论坛私信'}, {maskId:mid});if(c){conv.charId=c.id;persistForumRuntime();b.textContent='打开好友';closeForumScreen();await window.XXJ_Friends.open(c.id,mid);}};}
+  feedEl?.addEventListener('click',e=>{const b=e.target.closest('[data-feature-id]');if(!b)return;e.stopPropagation();const post=posts.find(p=>p.id===b.dataset.featureId);if(post){post.featured=!post.featured;persistForumRuntime();renderFeed();}});
+  function defaultCertifications(){return [
+    {icon:'seal-check',label:'创作者',posts:3,likes:0,comments:0,names:'',note:'本板块发帖至少 3 篇'},
+    {icon:'fire',label:'人气作者',posts:0,likes:10,comments:0,names:'',note:'本板块累计获赞 10 次'},
+    {icon:'chat-circle-dots',label:'活跃成员',posts:0,likes:0,comments:10,names:'',note:'本板块评论至少 10 条'},
+    {icon:'shield-check',label:'版主',posts:0,likes:0,comments:0,names:'',note:'填写指定昵称后授予；不填写不生效'}];}
+  function normalizeCertifications(rows){if(!Array.isArray(rows))return defaultCertifications();return rows.slice(0,8).map((r,i)=>({icon:['seal-check','fire','chat-circle-dots','shield-check','medal','star','crown','graduation-cap'].includes(r?.icon)?r.icon:'seal-check',label:String(r?.label||'认证').slice(0,16),posts:Math.max(0,Math.min(9999,Number(r?.posts)||0)),likes:Math.max(0,Math.min(9999,Number(r?.likes)||0)),comments:Math.max(0,Math.min(9999,Number(r?.comments)||0)),names:String(r?.names||'').slice(0,500),note:String(r?.note||'').slice(0,500)}));}
   function defaultSectorFields(name, id) {
     return {
       id: id || uid("sec"),
@@ -166,6 +186,8 @@
       worldBookVolumeIds: [],
       genType: "general",
       customPrompt: "",
+      worldView: "", rules: "", identityName: "", identityRole: "", postMinChars: 80, postMaxChars: 500,
+      certificationRules: defaultCertifications(), feedMode: "recent",
       sectorBgActivity: false,
       castCharIds: [],
       refreshPostMin: 3,
@@ -228,6 +250,10 @@
           : [],
         genType: FORUM_GEN_TYPES.includes(gen) ? gen : "general",
         customPrompt: String(s?.customPrompt || ""),
+        worldView: String(s?.worldView||"").slice(0,12000), rules: String(s?.rules||"").slice(0,8000),
+        identityName: String(s?.identityName||"").slice(0,40), identityRole: String(s?.identityRole||"").slice(0,1000),
+        postMinChars: Math.min(4000,Math.max(10,Number(s?.postMinChars)||80)), postMaxChars: Math.min(6000,Math.max(10,Number(s?.postMaxChars)||500)),
+        certificationRules: normalizeCertifications(s?.certificationRules), feedMode: ['recent','hot','featured'].includes(s?.feedMode)?s.feedMode:'recent',
         sectorBgActivity: Boolean(s?.sectorBgActivity),
         castCharIds: Array.isArray(s?.castCharIds)
           ? s.castCharIds.map((x) => String(x || "").trim()).filter(Boolean)
@@ -495,6 +521,7 @@
         if (t || c) lines.push(`[${t || "设定"}]: ${c}`);
       }
     }
+    lines.push('[板块世界观] '+(sec.worldView||'未单独设定'), '[板块规则] '+(sec.rules||'遵循世界书'), '[主控板块身份] '+(sec.identityName||resolveUserName())+'：'+(sec.identityRole||'普通成员'), '[每篇帖子正文长度] '+sec.postMinChars+'～'+sec.postMaxChars+' 字；不要代写主控发言。');
     const wb = lines.join("\n");
     const extra = String(sec?.customPrompt || "").trim();
     if (!extra) return wb;
@@ -748,6 +775,7 @@
     }
     renderConvChat(conv);
     dmEl.hidden = false;
+    syncForumAddFriend(conv);
     if (dmInputEl) {
       dmInputEl.value = "";
       window.setTimeout(() => dmInputEl.focus(), 80);
@@ -768,6 +796,7 @@
       id: uid("conv"),
       peerId: peerIdFromName(peerName),
       peerName,
+      sectorId: getActiveSector()?.id,
       peerInitial: peerInitial || peerName.slice(0, 1) || "?",
       messages: [],
       lastAt: Date.now()
@@ -797,7 +826,7 @@
     if (!text || !activeConvId) return;
     const conv = findConv(activeConvId);
     if (!conv) return;
-    const userName = resolveUserName();
+    const userName = getActiveSector()?.identityName||resolveUserName();
     appendDmMessage(conv, {
       id: uid("dm"),
       senderId: "user",
@@ -829,7 +858,10 @@
   function filterPosts(list) {
     const mf = ensureMaskForum();
     const sid = mf.activeSectorId || "main";
-    return list.filter((p) => !p.sectorId || p.sectorId === sid);
+    let rows=list.filter((p) => !p.sectorId || p.sectorId === sid);
+    const mode=getActiveSector()?.feedMode||'recent';
+    if(mode==='featured')rows=rows.filter(p=>p.featured===true);
+    return [...rows].sort(mode==='hot'?(a,b)=>postHeat(b)-postHeat(a)||(b.at||0)-(a.at||0):(a,b)=>(b.at||0)-(a.at||0));
   }
 
   function renderSectorBar() {
@@ -846,6 +878,7 @@
       btn.textContent = sec.name;
       sectorChipsEl.appendChild(btn);
     }
+    renderFeedModes();
     syncSectorWbBanner();
   }
 
@@ -888,6 +921,7 @@
   }
 
   function syncSectorSheetFieldsFromSector(sec) {
+    renderSectorExtras(sec);
     const gen = String(sec?.genType || "general");
     if (sectorGenChipsEl) {
       sectorGenChipsEl.querySelectorAll(".forum-gen-chip").forEach((btn) => {
@@ -906,6 +940,7 @@
 
   function applySectorSheetFieldsToSector(sec) {
     if (!sec) return;
+    saveSectorExtras(sec);
     const activeGen = sectorGenChipsEl?.querySelector(".forum-gen-chip.is-active");
     sec.genType = FORUM_GEN_TYPES.includes(activeGen?.getAttribute("data-gen-type"))
       ? activeGen.getAttribute("data-gen-type")
@@ -1367,7 +1402,7 @@
     const castChars = getForumCastChars(sec);
     const castChatBlock = buildForumCastChatBlock(castChars, resolveMaskId());
     const includePassers = sec?.includePassers !== false;
-    const userName = resolveUserName();
+    const userName = sec?.identityName||resolveUserName();
     const passersRule = includePassers
       ? "允许路人网友（非出镜角色）发帖与评论；路人名 2～6 字，像网名或真名，禁止「神秘人」「某网友」。"
       : "禁止路人：所有 author 必须来自【出镜角色】显示名；若未指定角色则只用世界观内合理人名。";
@@ -1474,7 +1509,7 @@
       const p = rawPosts[i];
       if (!p || typeof p !== "object") continue;
       const author = String(p.author || p.authorName || "").trim().slice(0, 24);
-      const content = String(p.content || p.text || "").trim();
+      const content = String(p.content || p.text || "").trim().slice(0,Math.max(sec?.postMinChars||80,sec?.postMaxChars||500));
       if (!author || !content) continue;
       if (!includePassers && !castNames.has(author) && author !== me) continue;
       const isCast = castNames.has(author);
@@ -2510,8 +2545,8 @@
       `<header class="forum-feed-head">` +
       `<button type="button" class="forum-feed-author" data-dm-name="${escapeHtml(post.authorName)}" data-dm-initial="${escapeHtml(post.authorInitial || "?")}">` +
       authorAvHtml +
-      `<span class="forum-feed-author-text"><strong>${escapeHtml(post.authorName || "网友")}</strong><time>${escapeHtml(formatRelTime(post.at))}</time></span>` +
-      `</button></header>` +
+      `<span class="forum-feed-author-text"><strong>${escapeHtml(post.authorName || "网友")}${certificationHtml(post.authorName,post.sectorId)}</strong><time>${escapeHtml(formatRelTime(post.at))}</time></span>` +
+      `</button><button type="button" class="chip ghost chip-xs forum-feature-toggle" data-feature-id="${escapeHtml(post.id)}" aria-label="${post.featured?'取消精华':'设为精华'}">${post.featured?'★ 精华':'☆ 精华'}</button></header>` +
       `<div class="forum-feed-body" data-open-post="${escapeHtml(post.id)}">` +
       bodyInner +
       `</div>` +
@@ -3315,6 +3350,7 @@
     if (!document.hidden) scheduleForumBgTimer();
   });
 
+  window.XXJ_Forum={getActiveSector,defaultCertifications,normalizeMaskForumState,buildForumWorldContext,buildForumRefreshMessages,filterPosts,openSectorSheet,saveSectorSheet,openDmWith,certificationHtml};
   scheduleForumBgTimer();
   window.scheduleForumBgTimer = scheduleForumBgTimer;
   window.applyForumCommentFromMitalk = applyForumCommentFromMitalk;
