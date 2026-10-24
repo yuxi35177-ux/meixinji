@@ -631,7 +631,8 @@
   /** @param {HTMLElement|null} el @param {string} raw @returns {boolean} */
   function fillInlineHtmlProseEl(el, raw) {
     if (!el) return false;
-    if (window.XXJ_Cards) return window.XXJ_Cards.mount(el, String(raw ?? ""));
+    // Existing built-in cards keep their established styles and trusted click handlers.
+    if (window.XXJ_Cards && !/\bxxj-ih/.test(String(raw ?? ""))) return window.XXJ_Cards.mount(el, String(raw ?? ""));
     initInlineHtmlChatDelegation();
     const s = stripInlineHtmlBrackets(String(raw ?? ""));
     el.classList.toggle("rich-prose--html", Boolean(s));

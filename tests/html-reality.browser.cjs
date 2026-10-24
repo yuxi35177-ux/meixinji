@@ -22,6 +22,7 @@ const root=path.resolve(__dirname,'..');
  await page.locator('#settings-theme-mode').selectOption('light');assert.equal(await page.evaluate(()=>document.body.classList.contains('dark')),false);
  await page.evaluate(()=>{const r=document.getElementById('settings-font-size');r.value='18';r.dispatchEvent(new Event('input',{bubbles:true}));});assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).fontSize),'18px');
  console.log('Theme, existing font preference and internal native-back hook: passed');
+ const builtin=await page.evaluate(()=>{const host=document.createElement('div');document.body.appendChild(host);XXJ_InlineHtml.fillInlineHtmlProseEl(host,'<div class="xxj-ih xxj-ih--slip"><b>原有内置卡片</b></div>');const kept=!!host.querySelector('.xxj-ih')&&!host.querySelector('iframe');host.remove();return kept});assert.equal(builtin,true,'existing card styles and interactions retain their renderer');
  const samples=[
   ['mixed','前面的消息 <div style="width:600px;background:#eef;padding:20px"><h3>卡片标题</h3><p>这是一张卡片</p></div> 后面的消息',1],
   ['encoded','你好 &lt;div style="width:280px"&gt;旧的转义卡片&lt;/div&gt; 再见',1],
