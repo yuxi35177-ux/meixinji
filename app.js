@@ -34823,7 +34823,7 @@ body.dark #chat-screen:not(.chat-screen--theme-glass) .chat-redpack-ico {
   background: var(--bg-card) !important;
   color: var(--text-main) !important;
   border: 1px solid var(--line) !important;
-  border-left: 3px solid var(--accent) !important;
+  border-left: 1px solid var(--line) !important;
   border-radius: 16px !important;
   box-shadow: var(--shadow-card) !important;
   backdrop-filter: none !important;
@@ -35716,7 +35716,7 @@ const DEFAULT_CHAT_SURFACE_CSS_TEMPLATE = `/* 没心机 · 自定义即时密谈
 
 /* 文本气泡：实底卡（勿用半透明 rgba，否则在壁纸上会像玻璃） */
 #chat-screen .chat-msg--assistant .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice),
-#chat-screen .chat-msg--system .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice) { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 16px; box-shadow: var(--shadow-card); }
+#chat-screen .chat-msg--system .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice) { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--line); border-left: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-card); }
 #chat-screen .chat-msg--user .chat-msg-bubble:not(.chat-msg-bubble--sticker):not(.chat-msg-bubble--typing):not(.chat-msg-bubble--voice) { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-card); }
 
 /* 贴纸与打字中 */

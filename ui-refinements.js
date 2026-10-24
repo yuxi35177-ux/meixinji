@@ -25,7 +25,7 @@
    const button=document.createElement('button');button.type='button';button.className='xxj-identity-toggle';button.id='chat-identity-toggle';button.setAttribute('aria-controls','chat-identity-panel');
    let collapsed=localStorage.getItem('xxj_identity_collapsed')==='yes';
    function paint(){card.classList.toggle('xxj-identity-collapsed',collapsed);button.textContent=collapsed?'展开人物卡 ▾':'收起 ▴';button.setAttribute('aria-expanded',String(!collapsed));}
-   button.onclick=()=>{const scroll=card.closest('.chat-scroll'),before=card.offsetHeight,top=scroll?.scrollTop||0;collapsed=!collapsed;paint();localStorage.setItem('xxj_identity_collapsed',collapsed?'yes':'no');if(scroll&&top>before)scroll.scrollTop=Math.max(0,top+card.offsetHeight-before);};card.prepend(button);paint();
+   button.onclick=()=>{const scroll=card.closest('.chat-scroll'),before=card.offsetHeight,top=scroll?.scrollTop||0;collapsed=!collapsed;paint();localStorage.setItem('xxj_identity_collapsed',collapsed?'yes':'no');if(scroll&&top>before)scroll.scrollTop=Math.max(0,top+card.offsetHeight-before);};document.getElementById('chat-meta-eyebrow').after(button);paint();
   }
  }
  window.XXJ_UI={refresh:queue};

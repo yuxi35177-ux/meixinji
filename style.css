@@ -22555,7 +22555,7 @@ body.dark .chat-msg-bubble--typing::after {
   max-width: 100%;
 }
 .chat-msg--assistant .chat-msg-bubble {
-  border-left: 3px solid var(--accent);
+  border-left: 1px solid var(--line);
 }
 /* 引用气泡：与 user 同款细边框+阴影，不用左侧色条 */
 .chat-msg--assistant .chat-msg-bubble--composer-quote,
