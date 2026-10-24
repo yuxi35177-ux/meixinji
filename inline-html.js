@@ -493,7 +493,7 @@
       content,
       fromJson: !!parsed,
       parts: parsed ? (Array.isArray(parsed.lines) ? parsed.lines.filter(x => typeof x === "string") : []) : content ? (content.includes("|||") ? content.split("|||") : [content]) : [],
-      seed: normalizeCardsOnMessage([...(Array.isArray(m.inlineHtmlCards) ? m.inlineHtmlCards : m.inlineHtmlCards ? [m.inlineHtmlCards] : []), ...(Array.isArray(parsed?.inlineHtmlCards) ? parsed.inlineHtmlCards : [])])
+      seed: normalizeCardsOnMessage([...(Array.isArray(m.inlineHtmlCards) ? m.inlineHtmlCards : m.inlineHtmlCards ? [m.inlineHtmlCards] : []), ...(Array.isArray(parsed?.inlineHtmlCards) ? parsed.inlineHtmlCards : [])]).filter((card, index, all) => all.findIndex(other => inlineHtmlBodyKey(other.html) === inlineHtmlBodyKey(card.html)) === index)
     };
   }
 

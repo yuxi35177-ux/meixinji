@@ -75,6 +75,10 @@
       if(el.tagName==='BUTTON') el.setAttribute('type','button');
       if(el.tagName==='FORM') el.removeAttribute('action');
     }
+    if (/<script\b/i.test(raw) && !doc.body.textContent.trim() && !doc.body.querySelector('img,svg,input,details')) {
+      const details=doc.createElement('details'),summary=doc.createElement('summary'),code=doc.createElement('pre');
+      summary.textContent='查看旧卡片原始内容';code.textContent=String(raw);details.append(summary,code);doc.body.replaceChildren(details);
+    }
     return doc;
   }
   function renderable(raw) {

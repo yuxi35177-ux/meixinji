@@ -64,6 +64,8 @@ const root=path.resolve(__dirname,'..');
 
  const jsonHistory=await page.evaluate(()=>{const raw=JSON.stringify({thinking:'keep-metadata',lines:['前文 <div>历史 JSON 卡片</div> 后文']});const m={role:'assistant',content:raw};XXJ_InlineHtml.materializeInlineHtmlOnMessage(m);return {same:m.content===raw,cards:m.inlineHtmlCards.length}});
  assert.equal(jsonHistory.same,true);assert.equal(jsonHistory.cards,1);
+ const repeatedJsonCards=await page.evaluate(()=>{const m={role:'assistant',content:JSON.stringify({lines:['你好'],inlineHtmlCards:[{html:'<div>JSON 内置卡片</div>'}]})};for(let i=0;i<4;i++)XXJ_InlineHtml.materializeInlineHtmlOnMessage(m);return m.inlineHtmlCards.length});assert.equal(repeatedJsonCards,1,'rendering JSON must not duplicate cards');
+ const fallback=await page.evaluate(()=>XXJ_Cards.renderable('<html><body><script>document.write("旧内容")</script></body></html>'));assert.equal(fallback,true,'script-only legacy content remains recoverable');
  const transport=await page.evaluate(async()=>{
   const sent=[];let turn=0;
   window.FloatLocalApi={onmessage:null,postMessage(raw){const m=JSON.parse(raw);sent.push(m.type);if(m.type==='start')setTimeout(()=>this.onmessage({data:JSON.stringify({id:m.id,type:'headers',status:200,contentType:'application/json'})}),0);if(m.type==='pull'){const response=turn++===0?{id:m.id,type:'chunk',data:btoa(unescape(encodeURIComponent('{"message":"本机接口正常"}')))}:{id:m.id,type:'end'};setTimeout(()=>this.onmessage({data:JSON.stringify(response)}),0)}}};
