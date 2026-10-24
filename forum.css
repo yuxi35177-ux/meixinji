@@ -2361,3 +2361,5 @@ dialog.forum-post-menu>button:first-child{color:#b44b4b}dialog.forum-post-menu>b
 .forum-my-identity{display:flex;justify-content:space-between;gap:12px;width:calc(100% - 24px);margin:6px 12px 2px;padding:9px 11px;border:1px solid #8883;border-radius:10px;background:transparent;color:inherit;font-size:.74rem;text-align:left}.forum-my-identity>span:last-child{white-space:nowrap;opacity:.65}
 .forum-generated-item{border:1px solid #8883;border-radius:9px;margin:8px 0;font-size:.78rem}.forum-generated-item>summary{cursor:pointer;padding:11px;overflow-wrap:anywhere}.forum-generated-item[open]>summary{border-bottom:1px solid #8882}.forum-generated-item>.forum-cert-rule{margin:6px;border:0}
 body.dark dialog.forum-post-menu{background:#25282b;color:#e9e9e9;border-color:#7b838966}
+
+dialog.forum-image-dialog{position:fixed;inset:0;margin:auto!important;width:min(380px,calc(100vw - 32px));max-width:calc(100vw - 32px);height:fit-content;max-height:calc(100dvh - 32px);overflow:auto;box-sizing:border-box}dialog.forum-image-dialog label[hidden]{display:none!important}
